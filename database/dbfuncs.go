@@ -18,10 +18,10 @@ type Node struct {
 }
 
 type Edge struct {
-    EID     	int			`json:"id" gorm:"primaryKey"`
-    Node1ID		int     	`json:"node1_id"`
-    Node2ID		int    	    `json:"node2_id"`
-    Cost    	int     	`json:"cost"`
+	EID     	int		`json:"id" gorm:"primaryKey"`
+	Node1ID		int     	`json:"node1_id"`
+	Node2ID		int		`json:"node2_id"`
+	Cost    	int     	`json:"cost"`
 }
 
 func contains(list []*Edge, x int) bool {
@@ -110,7 +110,8 @@ func AddEdge(n1, n2 *Node, cost int) (*Edge, error){
 
 	n1.Edges = append(n1.Edges, e)
 	n2.Edges = append(n2.Edges, e)
-
+	db.Save(n1)
+	db.Save(n2)
 	return e, nil
 }
 

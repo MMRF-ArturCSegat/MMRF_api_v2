@@ -1,12 +1,12 @@
 package main
 
 import (
-	"gat/database"
+	"gat/test"
 	"gat/api_funcs"
 )
 
 func init(){
-	db.ConnectDatabase()
+	db2.ConnectDatabase2()
 }
 
 func main(){
