@@ -2,27 +2,28 @@ package db2
 
 import (
 	"errors"
-	"gorm.io/gorm"
-	"gorm.io/driver/mysql"
 	"fmt"
+	pq "github.com/lib/pq"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var err error
 var db *gorm.DB
 
-
 type Node struct {
-	ID		int		`json:"id" gorm:"primaryKey"`
+	ID		int64		`json:"id" gorm:"primaryKey"`
 	Lat		float64		`json:"lat"`
 	Lng		float64		`json:"lng"`
-	Neighbours	[]*Node		`json:":neighbours" gorm:"many2many:node_neighbours;association_jointable_foreignkey:neighbour_id"`
+	Neighbours	pq.Int64Array	`json:":neighbours" gorm:"type:integer[]"`
 }
 
 
+
 func ConnectDatabase2() {
-    // Replace the connection details below with your own MySQL database configuration
-	dsn := "arturcs:123123123@tcp(127.0.0.1:3306)/gat_db?charset=utf8mb4&parseTime=True&loc=Local"
-    database, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+    // Replace the connection details below with your own PostgreSQL database configuration
+    dsn := "host=localhost user=arturcs password=123123123 dbname=gatdb port=5432 sslmode=disable TimeZone=UTC"
+    database, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
     if err != nil {
         panic("Failed to connect to database!")
     }
@@ -33,28 +34,8 @@ func ConnectDatabase2() {
         return
     }
 
-
     db = database
 }
-
-func AddShit(n int) (*Node, error){
-
-	node, err := FindNode(n)
-
-	if err != nil {
-		return nil, errors.New("Error: Noden not in database")
-	}
-	node.Neighbours = append(node.Neighbours, &Node{
-		Lat: 69.420,
-		Lng: 420.69,
-	})
-	res := db.Model(node).Updates(&node)
-	if res.RowsAffected == 0 {
-		return nil, errors.New("Error: failed to add shit to node")
-	}
-	return node, nil
-}
-
 
 func AddNode(n *Node) (*Node, error){
 	fmt.Println("Adding node " ,n)
@@ -67,7 +48,7 @@ func AddNode(n *Node) (*Node, error){
 	
 	return n, nil
 }
-func FindNode(id int) (*Node, error){
+func FindNode(id int64) (*Node, error){
 	fmt.Println("FindNode ran")
 	var node Node
 	res := db.First(&node,"id = ?", id)
@@ -102,20 +83,36 @@ func AddEdge(n1, n2 *Node) ([]*Node ,error){
 	}
 	return []*Node{node1, node2}, nil
 }
-func ConnectNodes(node1, node2 *Node) error {
-    fmt.Println("Connecting nodes")
+func ConnectNodes(n1, n2 int64) error {
+	fmt.Println("finding nodes")
+	node1, err := FindNode(n1)
+	if err != nil{
+		return err
+	}
+	fmt.Println("found node 1-", node1)
 
-    node1.Neighbours = append(node1.Neighbours, node2)
-    if err := db.Model(node1).Association("Neighbours").Append(node2); err != nil {
-        return err
-    }
 
-    node2.Neighbours = append(node2.Neighbours, node1)
-    if err := db.Model(node2).Association("Neighbours").Append(node1); err != nil {
-        return err
-    }
+	node2, err := FindNode(n2)
+	if err != nil{
+		return err
+	}
+	fmt.Println("found node 2-", node2)
 
-    return nil
+	fmt.Println("Connecting nodes")
+
+	val1 := append(node1.Neighbours, node2.ID)
+	fmt.Println("val1",val1)
+	if err := db.Model(node1).UpdateColumn("neighbours", val1).Error; err != nil {
+		return errors.New("Failed to connect on node1")
+	}
+
+	val2 := append(node2.Neighbours, node1.ID)
+	fmt.Println("val2",val2)
+	if err := db.Model(node2).UpdateColumn("neighbours", val2).Error; err != nil {
+		return errors.New("Failed to connect on node2")
+	}
+
+	return nil
 }
 
 func AllNodes() ([]*Node, error){

@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"gat/test"
+	"gat/database"
 	"fmt"
 )
 
@@ -33,19 +33,6 @@ func addNode(c *gin.Context){
 	}
 	
 	c.JSON(http.StatusOK, gin.H{"node added": res})
-	return
-}
-
-func addShit(c  *gin.Context){
-	nid ,_ := strconv.Atoi(c.Param("id"))
-	node, err := db2.AddShit(nid)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to add shit",})
-		return
-	}
-
-	c.JSON(http.StatusTeapot, gin.H{"shit": node,})
 	return
 }
 
@@ -99,38 +86,32 @@ func addEdge(c *gin.Context){
 }
 
 func connect(c * gin.Context){
+	n1, err1 := strconv.Atoi(c.Param("n1"))
+	n2, err2 := strconv.Atoi(c.Param("n2"))
 
-	type Body struct {
-		Nodes 	[]db2.Node 	`jason:"nodes"`
-		Dist  	int		`jason:"dist"`	
-	}
-
-	var nodes Body
-
-	if err := c.ShouldBindJSON(&nodes); err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
+	if err1 != nil|| err2 != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err1.Error(),})
 		return
+
 	}
-	err := db2.ConnectNodes(&nodes.Nodes[0], &nodes.Nodes[1])
+
+	err := db2.ConnectNodes(int64(n1),int64(n2))
 	
 	if err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"nodes" : nodes,})
+	c.JSON(http.StatusOK, gin.H{"node1" : n1, "node2": n2,})
 	return
 }
 
 func SetupRouter() *gin.Engine{
 	r := gin.Default()
-
-
+	r.GET("/", home)
 	r.POST("/addNode", addNode)
-	r.POST("/addedge", addEdge)
-	// r.get("/alledges", alledges)
+	r.POST("/addEdge", addEdge)
 	r.GET("/allNodes", allNodes)
-	r.GET("addShit/:id", addShit)
-	r.PUT("/addEdge", connect)
+	r.PUT("/addEdge/:n1/:n2", connect)
 	return r
 }

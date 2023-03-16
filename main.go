@@ -1,7 +1,7 @@
 package main
 
 import (
-	"gat/test"
+	"gat/database"
 	"gat/api_funcs"
 )
 
