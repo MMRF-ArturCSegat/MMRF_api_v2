@@ -85,6 +85,36 @@ func addEdge(c *gin.Context){
 	return
 }
 
+func SpreadRadius(c * gin.Context){
+	start_id, err := strconv.Atoi(c.Param("start"))
+
+	if err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
+		return
+	}
+	
+	start, err := db2.FindNode(int64(start_id))
+	
+	if err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
+		return
+	}
+
+	mode := c.Param("mode") // debug to turn multithreading on and off
+
+	var paths [][]*db2.Node
+
+	if mode == "0"{
+		paths = db2.SpreadRadiusSingle(start, 3, 0, make([]*db2.Node, 0), make([][]*db2.Node, 0))	
+	} else{
+		paths = db2.SpreadRadius(start, 3, 0, make([]*db2.Node, 0), make([][]*db2.Node, 0))
+	}
+	
+
+	c.JSON(http.StatusOK, gin.H{"paths": paths,})
+	return
+}
+
 func connect(c * gin.Context){
 	n1, err1 := strconv.Atoi(c.Param("n1"))
 	n2, err2 := strconv.Atoi(c.Param("n2"))
@@ -113,5 +143,6 @@ func SetupRouter() *gin.Engine{
 	r.POST("/addEdge", addEdge)
 	r.GET("/allNodes", allNodes)
 	r.PUT("/addEdge/:n1/:n2", connect)
+	r.GET("/spreadRadius/:start/:mode", SpreadRadius)
 	return r
 }
