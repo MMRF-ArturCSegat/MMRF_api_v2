@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 	pq "github.com/lib/pq"
-	"gorm.io/gorm"
 	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 var err error
@@ -125,88 +125,10 @@ func AllNodes() ([]*Node, error){
 	}
 	return nodes, nil
 }
+/*
+//	When traversing a graph like this, Start or End are not strongly associated, which means they can be traversed in any order, 
+// 	That means that in a Edge with ID 4-19, you would expect to traverse 4->19, and then have to query for a 19-4 edge to traverse the reverse
+// 	You can simply check if the Node you are visiting (In this case lets say 19) is the Node1 or Node2 in the Edge and then visit the Node that is not
 
-func In[T comparable](e T, list []T) bool{
-	for _, item := range list{
-		if item == e{
-			return true
-		}
-	}
-	return false
-}
-
-func IdSliceFromNodeSlice(node_slice []*Node) []int64 {
-	id_slice := make([]int64, len(node_slice))
-
-	if len(node_slice) == 0{
-		return id_slice
-	}
-
-	for i, e := range node_slice{
-		id_slice[i] = e.ID	
-	}
-	return id_slice
-}
-
-func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [][]*Node {
-	fmt.Println("multi")
-	if cost > limit{ // if here adding the next node would not pass the limit
-		return paths
-	}
-	
-	path = append(path, start)
-	cost += 1
-	// current node added to the path, now should continue to its neighbours
-
-	paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
-
-	dissectPath := func(node *Node, limit, cost int, path []*Node, paths [][]*Node, results chan [][]*Node) { // function will be used to fill a channe with paths
-	                                                                                                    // from each neighbour of start	
-		
-		subPaths := SpreadRadius(node, limit, cost, path, make([][]*Node, 0)) // calculating subpaths by dividing the graph in subgraphs
-
-		results <- subPaths // sends the resulting paths into the chanel so they can be read later
-	}
-
-	r := make(chan [][]*Node)
-	send_counter:= 0 // we need this variable because the if in the following loop makes so we are not sure what number we are sending, it is max len(start.Neighbours)
-	for _, node_id := range start.Neighbours{
-		if In(node_id, IdSliceFromNodeSlice(path)) == false {
-			node, _ := FindNode(node_id) // the error can be ignored because all the neighbours must be real
-			fmt.Printf("in was false for %v inside of %v\n", node, IdSliceFromNodeSlice(path))
-			send_counter += 1
-			go dissectPath(node, limit, cost, path, paths, r)
-		}
-	}
-
-	for i:=0; i < send_counter; i++ { // here we use the send_counter, because if we just looped len(start.Neighbours) times we might read more than we send
-		subPaths := <- r
-		for _, p := range subPaths {
-			paths = append(paths, p)
-		}
-	}
-
-	return paths
-}
-
-func SpreadRadiusSingle(start *Node, limit, cost int, path []*Node, paths [][]*Node) [][]*Node {
-	fmt.Println("single")
-	if cost > limit{ // if here adding the next node would not pass the limit
-		return paths
-	}
-	
-	path = append(path, start)
-	cost += 1
-	// current node added to the path, now should continue to its neighbours
-
-	paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
-
-	for _, node_id := range start.Neighbours{
-		if In(node_id, IdSliceFromNodeSlice(path)) == false {
-			node, _ := FindNode(node_id) // the error can be ignored because all the neighbours must be real
-			fmt.Printf("in was false for %v inside of %v\n", node, IdSliceFromNodeSlice(path))
-			paths = SpreadRadiusSingle(node, limit, cost, path, paths)
-		}
-	}
-	return paths
-}
+// TODO IMPLEMENT TRAVERSE
+*/
