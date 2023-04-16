@@ -202,7 +202,6 @@ func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [
 			paths = append(paths, p)
 		}
 	}
-
 	println("done unmounting ", start.ID)
 	return paths
 }
@@ -215,6 +214,11 @@ func SpreadRadiusSingle(start *Node, limit, cost int, path []*Node, paths [][]*N
 	// current node added to the path, now should continue to its neighbours
 
 	paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
+	if util.SliceInMatrix(paths, path) == false{
+		paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
+	} else{
+		return paths
+	}
 	fmt.Println("appending ", IdSliceFromNodeSlice(path))
 
 	for _, node_id := range start.Neighbours{
