@@ -6,6 +6,7 @@ import (
 	pq "github.com/lib/pq"
 	"gorm.io/gorm"
 	"gorm.io/driver/postgres"
+	"gat/utilities"	
 )
 
 var err error
@@ -49,7 +50,7 @@ func AddNode(n *Node) (*Node, error){
 	return n, nil
 }
 func FindNode(id int64) (*Node, error){
-	fmt.Println("FindNode ran")
+	fmt.Println("FindNode ran for", id)
 	var node Node
 	res := db.First(&node,"id = ?", id)
 	if res.RowsAffected == 0 || res.Error != nil {
@@ -126,14 +127,7 @@ func AllNodes() ([]*Node, error){
 	return nodes, nil
 }
 
-func In[T comparable](e T, list []T) bool{
-	for _, item := range list{
-		if item == e{
-			return true
-		}
-	}
-	return false
-}
+
 
 func IdSliceFromNodeSlice(node_slice []*Node) []int64 {
 	id_slice := make([]int64, len(node_slice))
@@ -149,64 +143,94 @@ func IdSliceFromNodeSlice(node_slice []*Node) []int64 {
 }
 
 func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [][]*Node {
-	fmt.Println("multi")
-	if cost > limit{ // if here adding the next node would not pass the limit
-		return paths
-	}
+	fmt.Println("routine from ", start.ID)
 	
 	path = append(path, start)
 	cost += 1
 	// current node added to the path, now should continue to its neighbours
 
-	paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
+	if util.SliceInMatrix(paths, path) == false{
+		paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
+	} else{
+		fmt.Println("Tried to add ", path, "was already there")
+		return paths
+	}
+	fmt.Println("path from append", IdSliceFromNodeSlice(path))
 
-	dissectPath := func(node *Node, limit, cost int, path []*Node, paths [][]*Node, results chan [][]*Node) { // function will be used to fill a channe with paths
+	dissectPath := func(node *Node, limit, cost int, path []*Node, results chan [][]*Node) { // function will be used to fill a channe with paths
 	                                                                                                    // from each neighbour of start	
 		
 		subPaths := SpreadRadius(node, limit, cost, path, make([][]*Node, 0)) // calculating subpaths by dividing the graph in subgraphs
 
+		println("node ", node.ID, "is sending in to the", path[len(path) -1].ID, "channel:")
+		for _, p := range subPaths{
+			fmt.Println(IdSliceFromNodeSlice(p))
+		}
+		println("end")
 		results <- subPaths // sends the resulting paths into the chanel so they can be read later
 	}
 
-	r := make(chan [][]*Node)
-	send_counter:= 0 // we need this variable because the if in the following loop makes so we are not sure what number we are sending, it is max len(start.Neighbours)
+	r := make(chan [][]*Node, len(start.Neighbours))
+	to_receive_counter:= 0 // we need this variable because the if in the following loop makes so we are not sure what number we are sending, it is max len(start.Neighbours)
+	offset_counter := 0
+	fmt.Println("looping trough ", start.ID, "neighbours :", start.Neighbours)
 	for _, node_id := range start.Neighbours{
-		if In(node_id, IdSliceFromNodeSlice(path)) == false {
+		println("neighbour: ", node_id, "from ", start.ID)
+		if util.In(node_id, IdSliceFromNodeSlice(path)) == false {
+			if cost > limit{ // if here adding the next node would not pass the limit
+				offset_counter += 1
+				continue
+			}
 			node, _ := FindNode(node_id) // the error can be ignored because all the neighbours must be real
 			fmt.Printf("in was false for %v inside of %v\n", node, IdSliceFromNodeSlice(path))
-			send_counter += 1
-			go dissectPath(node, limit, cost, path, paths, r)
+			to_receive_counter += 1
+			go dissectPath(node, limit, cost, path, r)
+		} else {
+			offset_counter += 1
+			continue
 		}
 	}
 
-	for i:=0; i < send_counter; i++ { // here we use the send_counter, because if we just looped len(start.Neighbours) times we might read more than we send
-		subPaths := <- r
+	println(start.ID, "is waiting")
+	println("to_receive_counter is ",to_receive_counter, "for ", start.ID)
+	println("off ", offset_counter)
+	for i := 0; i < to_receive_counter; i++{ // here we use the send_counter, because if we just looped len(start.Neighbours) times we might read more than we send
+		subPaths := <-r
+		println("len of subpaths for ", start.ID, "is ", len(subPaths))
 		for _, p := range subPaths {
+			fmt.Println(start.ID, "received ",IdSliceFromNodeSlice(p), "path from the chan")
 			paths = append(paths, p)
 		}
 	}
 
+	println("done unmounting ", start.ID)
 	return paths
 }
 
 func SpreadRadiusSingle(start *Node, limit, cost int, path []*Node, paths [][]*Node) [][]*Node {
-	fmt.Println("single")
-	if cost > limit{ // if here adding the next node would not pass the limit
-		return paths
-	}
+	fmt.Println("pathing from ", start.ID)
 	
 	path = append(path, start)
 	cost += 1
 	// current node added to the path, now should continue to its neighbours
 
 	paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
+	fmt.Println("appending ", IdSliceFromNodeSlice(path))
 
 	for _, node_id := range start.Neighbours{
-		if In(node_id, IdSliceFromNodeSlice(path)) == false {
+		if util.In(node_id, IdSliceFromNodeSlice(path)) == false {
+			if cost > limit{ // if here adding the next node would not pass the limit
+				continue
+			}
 			node, _ := FindNode(node_id) // the error can be ignored because all the neighbours must be real
 			fmt.Printf("in was false for %v inside of %v\n", node, IdSliceFromNodeSlice(path))
 			paths = SpreadRadiusSingle(node, limit, cost, path, paths)
 		}
+	}
+	println("paths from ", start.ID, ":")
+
+	for _, e := range paths{
+		fmt.Println(IdSliceFromNodeSlice(e))
 	}
 	return paths
 }

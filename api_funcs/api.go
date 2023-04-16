@@ -110,8 +110,13 @@ func SpreadRadius(c * gin.Context){
 		paths = db2.SpreadRadius(start, 3, 0, make([]*db2.Node, 0), make([][]*db2.Node, 0))
 	}
 	
+	readable_paths := make([][]int64, 0)
 
-	c.JSON(http.StatusOK, gin.H{"paths": paths,})
+	for _, e := range paths{
+		readable_paths = append(readable_paths, db2.IdSliceFromNodeSlice(e))
+	}
+
+	c.JSON(http.StatusOK, gin.H{"paths":readable_paths,})
 	return
 }
 
