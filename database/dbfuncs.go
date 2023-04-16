@@ -4,9 +4,9 @@ import (
 	"errors"
 	"fmt"
 	pq "github.com/lib/pq"
-	"gorm.io/gorm"
 	"gorm.io/driver/postgres"
 	"gat/utilities"	
+	"gorm.io/gorm"
 )
 
 var err error
@@ -126,8 +126,6 @@ func AllNodes() ([]*Node, error){
 	}
 	return nodes, nil
 }
-
-
 
 func IdSliceFromNodeSlice(node_slice []*Node) []int64 {
 	id_slice := make([]int64, len(node_slice))
