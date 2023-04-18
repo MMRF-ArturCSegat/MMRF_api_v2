@@ -3,9 +3,11 @@ package db2
 import (
 	"errors"
 	"fmt"
+	"gat/utilities"
+	"sync"
+
 	pq "github.com/lib/pq"
 	"gorm.io/driver/postgres"
-	"gat/utilities"	
 	"gorm.io/gorm"
 )
 
@@ -147,59 +149,49 @@ func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [
 	cost += 1
 	// current node added to the path, now should continue to its neighbours
 
-	if util.SliceInMatrix(paths, path) == false{
-		paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
-	} else{
-		fmt.Println("Tried to add ", path, "was already there")
-		return paths
-	}
+	paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
+
 	fmt.Println("path from append", IdSliceFromNodeSlice(path))
 
-	dissectPath := func(node *Node, limit, cost int, path []*Node, results chan [][]*Node) { // function will be used to fill a channe with paths
-	                                                                                                    // from each neighbour of start	
-		
+	dissectPath := func(node *Node, limit, cost int, path []*Node, results chan [][]*Node, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
 		subPaths := SpreadRadius(node, limit, cost, path, make([][]*Node, 0)) // calculating subpaths by dividing the graph in subgraphs
 
 		println("node ", node.ID, "is sending in to the", path[len(path) -1].ID, "channel:")
 		for _, p := range subPaths{
 			fmt.Println(IdSliceFromNodeSlice(p))
 		}
-		println("end")
 		results <- subPaths // sends the resulting paths into the chanel so they can be read later
+		defer wg.Done()
 	}
 
 	r := make(chan [][]*Node, len(start.Neighbours))
-	to_receive_counter:= 0 // we need this variable because the if in the following loop makes so we are not sure what number we are sending, it is max len(start.Neighbours)
-	offset_counter := 0
+	wg := new(sync.WaitGroup)
+
 	fmt.Println("looping trough ", start.ID, "neighbours :", start.Neighbours)
 	for _, node_id := range start.Neighbours{
 		println("neighbour: ", node_id, "from ", start.ID)
 		if util.In(node_id, IdSliceFromNodeSlice(path)) == false {
 			if cost > limit{ // if here adding the next node would not pass the limit
-				offset_counter += 1
 				continue
 			}
 			node, _ := FindNode(node_id) // the error can be ignored because all the neighbours must be real
 			fmt.Printf("in was false for %v inside of %v\n", node, IdSliceFromNodeSlice(path))
-			to_receive_counter += 1
-			go dissectPath(node, limit, cost, path, r)
-		} else {
-			offset_counter += 1
-			continue
+			wg.Add(1)
+			go dissectPath(node, limit, cost, path, r, wg)
+		}
+	}
+	println(start.ID, "is waiting")
+	wg.Wait()
+	close(r)
+	println(start.ID, "finished waiting, closing channel")
+	println("len of channel for", start.ID, "is ", len(r))
+	for subPaths := range r{
+		for _, subPath := range subPaths{
+			fmt.Println(start.ID, "received ",IdSliceFromNodeSlice(path), "path from the chan")
+				paths = append(paths, subPath)
 		}
 	}
 
-	println(start.ID, "is waiting")
-	println("to_receive_counter is ",to_receive_counter, "for ", start.ID)
-	println("off ", offset_counter)
-	for i := 0; i < to_receive_counter; i++{ // here we use the send_counter, because if we just looped len(start.Neighbours) times we might read more than we send
-		subPaths := <-r
-		println("len of subpaths for ", start.ID, "is ", len(subPaths))
-		for _, p := range subPaths {
-			fmt.Println(start.ID, "received ",IdSliceFromNodeSlice(p), "path from the chan")
-			paths = append(paths, p)
-		}
-	}
 	println("done unmounting ", start.ID)
 	return paths
 }
