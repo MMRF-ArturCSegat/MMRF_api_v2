@@ -6,7 +6,7 @@ import (
 )
 
 func init(){
-	db2.ConnectDatabase2()
+	db.ConnectDatabase2()
 }
 
 func main(){
