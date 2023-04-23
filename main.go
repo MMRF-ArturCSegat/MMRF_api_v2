@@ -1,8 +1,8 @@
 package main
 
 import (
-	"gat/database"
-	"gat/api_funcs"
+	"gat/db"
+	"gat/routes"
 )
 
 func init(){
@@ -10,6 +10,6 @@ func init(){
 }
 
 func main(){
-	r := funcs.SetupRouter()
-	r.Run(":3000")
+	r := routes.SetupRouter()
+	r.Run(":1337")
 }

@@ -1,10 +1,10 @@
-package funcs
+package routes
 
 import (
 	"strconv"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"gat/database"
+	"gat/db"
 	"fmt"
 )
 
@@ -12,7 +12,6 @@ func home(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Lol funny api",
 	})
-	return
 }
 
 func addNode(c *gin.Context){
@@ -33,7 +32,6 @@ func addNode(c *gin.Context){
 	}
 	
 	c.JSON(http.StatusOK, gin.H{"node added": res})
-	return
 }
 
 func allNodes(c *gin.Context){
@@ -48,7 +46,6 @@ func allNodes(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{
 		"nodes": nodes,
 	})
-	return
 }
 
 func addEdge(c *gin.Context){
@@ -66,7 +63,7 @@ func addEdge(c *gin.Context){
 	}
 
 	if len(body.Nodes) != 2{
-		c.JSON(http.StatusBadRequest, gin.H{"error": "expecting an array of 2 user objects"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "expecting an array of 2 node objects"})
         return
 	}
 
@@ -82,7 +79,6 @@ func addEdge(c *gin.Context){
 	}
 
 	c.JSON(http.StatusOK, gin.H{"nodes" : nodes,})
-	return
 }
 
 func SpreadRadius(c * gin.Context){
@@ -114,7 +110,6 @@ func SpreadRadius(c * gin.Context){
 	}
 
     c.JSON(http.StatusOK, gin.H{"paths":paths,})
-	return
 }
 
 func connect(c * gin.Context){
@@ -135,7 +130,6 @@ func connect(c * gin.Context){
 	}
 
 	c.JSON(http.StatusOK, gin.H{"node1" : n1, "node2": n2,})
-	return
 }
 
 func SetupRouter() *gin.Engine{
