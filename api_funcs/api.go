@@ -106,18 +106,14 @@ func SpreadRadius(c * gin.Context){
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
 		return
 	}
-	
-	var paths [][]*db.Node
 
-    paths = db.SpreadRadius(start, limit, 0, make([]*db.Node, 0), make([][]*db.Node, 0))
+    paths := db.SpreadRadius(start, limit, 0, make([]*db.Node, 0), make([][]*db.Node, 0))
 	
-	readable_paths := make([][]int64, 0)
-
 	for _, e := range paths{
-		readable_paths = append(readable_paths, db.IdSliceFromNodeSlice(e))
+		fmt.Println(db.IdSliceFromNodeSlice(e))
 	}
 
-	c.JSON(http.StatusOK, gin.H{"paths":readable_paths,})
+    c.JSON(http.StatusOK, gin.H{"paths":paths,})
 	return
 }
 

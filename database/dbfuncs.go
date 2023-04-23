@@ -142,26 +142,15 @@ func IdSliceFromNodeSlice(node_slice []*Node) []int64 {
 }
 
 func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [][]*Node {
-	fmt.Println("routine from ", start.ID)
-	
 	path = append(path, start)
 	cost += 1
-	// current node added to the path, now should continue to its neighbours
-
-	// paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
-
-	fmt.Println("path from append", IdSliceFromNodeSlice(path))
 
 	dissectPath := func(node *Node, limit, cost int, path []*Node, results chan [][]*Node, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
 		defer wg.Done()
 	
 		subPaths := SpreadRadius(node, limit, cost, path, make([][]*Node, 0)) // calculating subpaths by dividing the graph in subgraphs
 
-		println("node ", node.ID, "is sending in to the", path[len(path) -1].ID, "channel, inside the routine ", start.ID)
 		results <- subPaths // sends the resulting paths into the chanel so they can be read later
-		for _, subPath := range subPaths{
-			fmt.Println(IdSliceFromNodeSlice(subPath))
-		}
 	}
 
 	r := make(chan [][]*Node, len(start.Neighbours))
@@ -169,15 +158,12 @@ func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [
 
 	routine_counter := 0
 
-	fmt.Println("looping trough ", start.ID, "neighbours :", start.Neighbours)
 	for _, node_id := range start.Neighbours{
-		println("neighbour: ", node_id, "from ", start.ID)
 		if !util.In(node_id, IdSliceFromNodeSlice(path)){
 			if cost > limit{ // if here adding the next node would not pass the limit
 				continue
 			}
 			node, _ := FindNode(node_id)
-			fmt.Printf("in was false for %v inside of %v\n", node_id, IdSliceFromNodeSlice(path))
 
 			p := make([]*Node, len(path))
 			copy(p, path)
@@ -189,19 +175,13 @@ func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [
 	
 	wg.Wait()
 	close(r)
-	println(start.ID, "finished waiting, closing channel")
-	println("len of channel for", start.ID, "is ", len(r))
+
 	paths = append(paths, path)
-	rangee := 0
 	for subPaths := range r{
-		println("index of r = ", rangee)
 		for i := 0; i< len(subPaths); i++{
-			fmt.Println(start.ID, "received ",IdSliceFromNodeSlice(subPaths[i]), "path from the chan, index = ", i)
 			paths = append(paths, subPaths[i])
 		}
-		rangee += 1
 	}
 
-	println("done unmounting ", start.ID)
 	return paths
 }
