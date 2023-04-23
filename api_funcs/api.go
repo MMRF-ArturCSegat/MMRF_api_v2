@@ -107,16 +107,9 @@ func SpreadRadius(c * gin.Context){
 		return
 	}
 	
-
-	mode := c.Param("mode") // debug to turn multithreading on and off
-
 	var paths [][]*db.Node
 
-	if mode == "0"{
-		paths = db.SpreadRadiusSingle(start, limit, 0, make([]*db.Node, 0), make([][]*db.Node, 0))	
-	} else{
-		paths = db.SpreadRadius(start, limit, 0, make([]*db.Node, 0), make([][]*db.Node, 0))
-	}
+    paths = db.SpreadRadius(start, limit, 0, make([]*db.Node, 0), make([][]*db.Node, 0))
 	
 	readable_paths := make([][]int64, 0)
 
@@ -156,6 +149,6 @@ func SetupRouter() *gin.Engine{
 	r.POST("/addEdge", addEdge)
 	r.GET("/allNodes", allNodes)
 	r.PUT("/addEdge/:n1/:n2", connect)
-	r.GET("/spreadRadius/:start/:mode/:limit", SpreadRadius)
+	r.GET("/spreadRadius/:start/:limit", SpreadRadius)
 	return r
 }

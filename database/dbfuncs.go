@@ -11,7 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var err error
 var db *gorm.DB
 
 type Node struct {
@@ -173,7 +172,7 @@ func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [
 	fmt.Println("looping trough ", start.ID, "neighbours :", start.Neighbours)
 	for _, node_id := range start.Neighbours{
 		println("neighbour: ", node_id, "from ", start.ID)
-		if util.In(node_id, IdSliceFromNodeSlice(path)) == false {
+		if !util.In(node_id, IdSliceFromNodeSlice(path)){
 			if cost > limit{ // if here adding the next node would not pass the limit
 				continue
 			}
@@ -204,38 +203,5 @@ func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [
 	}
 
 	println("done unmounting ", start.ID)
-	return paths
-}
-
-func SpreadRadiusSingle(start *Node, limit, cost int, path []*Node, paths [][]*Node) [][]*Node {
-	fmt.Println("pathing from ", start.ID)
-	
-	path = append(path, start)
-	cost += 1
-	// current node added to the path, now should continue to its neighbours
-
-	paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
-	if util.SliceInMatrix(paths, path) == false{
-		paths = append(paths, path) // it is important we addi to the path instantly so we will have all paths in the radius 
-	} else{
-		return paths
-	}
-	fmt.Println("appending ", IdSliceFromNodeSlice(path))
-
-	for _, node_id := range start.Neighbours{
-		if util.In(node_id, IdSliceFromNodeSlice(path)) == false {
-			if cost > limit{ // if here adding the next node would not pass the limit
-				continue
-			}
-			node, _ := FindNode(node_id) // the error can be ignored because all the neighbours must be real
-			fmt.Printf("in was false for %v inside of %v\n", node, IdSliceFromNodeSlice(path))
-			paths = SpreadRadiusSingle(node, limit, cost, path, paths)
-		}
-	}
-	println("paths from ", start.ID, ":")
-
-	for _, e := range paths{
-		fmt.Println(IdSliceFromNodeSlice(e))
-	}
 	return paths
 }
