@@ -36,35 +36,27 @@ func AddEdge(n1, n2 *Node) ([]*Node ,error){
 			return nil, errors.New("Failed to add second node to db")
 		}
 	}
+    err := ConnectNodes(n1, n2)
+
+    if err != nil{
+        return nil, errors.New("Failed to connect both nodes")
+    }
+
 	return []*Node{node1, node2}, nil
 }
 
-func ConnectNodes(n1, n2 int64) error {
-	fmt.Println("finding nodes")
-	node1, err := FindNode(n1)
-	if err != nil{
-		return err
-	}
-	fmt.Println("found node 1-", node1)
-
-
-	node2, err := FindNode(n2)
-	if err != nil{
-		return err
-	}
-	fmt.Println("found node 2-", node2)
-
+func ConnectNodes(n1, n2 *Node) error {
 	fmt.Println("Connecting nodes")
 
-	val1 := append(node1.Neighbours, node2.ID)
+	val1 := append(n1.Neighbours, n2.ID)
 	fmt.Println("val1",val1)
-	if err := db.Model(node1).UpdateColumn("neighbours", val1).Error; err != nil {
+	if err := db.Model(n1).UpdateColumn("neighbours", val1).Error; err != nil {
 		return errors.New("Failed to connect on node1")
 	}
 
-	val2 := append(node2.Neighbours, node1.ID)
+	val2 := append(n2.Neighbours, n1.ID)
 	fmt.Println("val2",val2)
-	if err := db.Model(node2).UpdateColumn("neighbours", val2).Error; err != nil {
+	if err := db.Model(n2).UpdateColumn("neighbours", val2).Error; err != nil {
 		return errors.New("Failed to connect on node2")
 	}
 
