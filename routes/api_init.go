@@ -18,6 +18,6 @@ func SetupRouter() *gin.Engine{
 	r.POST("/add-edge", addEdge)
 	r.GET("/all-nodes", allNodes)
 	r.POST("/connect", connect)
-	r.GET("/spread-radius/:start/:limit", SpreadRadius)
+	r.POST("/spread-radius/", SpreadRadius)
 	return r
 }

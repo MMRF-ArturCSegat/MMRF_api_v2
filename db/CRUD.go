@@ -36,7 +36,7 @@ func AddEdge(n1, n2 *Node) ([]*Node ,error){
 			return nil, errors.New("Failed to add second node to db")
 		}
 	}
-    err := ConnectNodes(n1, n2)
+    err := ConnectNodes(node1, node2)
 
     if err != nil{
         return nil, errors.New("Failed to connect both nodes")

@@ -1,12 +1,11 @@
 package db
 
-import(
-    "fmt"
-    "errors"
-    "gat/utilities"
-    "sync"
+import (
+	"errors"
+	"fmt"
+	"gat/util"
+	"sync"
 )
-
 
 func FindNode(id int64) (*Node, error){
 	fmt.Println("FindNode ran for", id)
@@ -31,56 +30,43 @@ func AllNodes() ([]*Node, error){
 	return nodes, nil
 }
 
-func IdSliceFromNodeSlice(node_slice []*Node) []int64 {
-	id_slice := make([]int64, len(node_slice))
 
-	if len(node_slice) == 0{
-		return id_slice
-	}
+func SpreadRadius(start *Node, limit float32, path GraphPath, paths []GraphPath, square util.Square) []GraphPath {
+    path.Append(start)      // add the current node to the current path
 
-	for i, e := range node_slice{
-		id_slice[i] = e.ID	
-	}
-	return id_slice
-}
-
-func SpreadRadius(start *Node, limit, cost int, path []*Node, paths [][]*Node) [][]*Node {
-	path = append(path, start)
-	cost += 1
-
-	dissectPath := func(node *Node, limit, cost int, path []*Node, results chan [][]*Node, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
+	dissectPath := func(node *Node, limit float32, path GraphPath, results chan []GraphPath, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
 		defer wg.Done()
 	
-		subPaths := SpreadRadius(node, limit, cost, path, make([][]*Node, 0)) // calculating subpaths by dividing the graph in subgraphs
+		subPaths := SpreadRadius(node, limit, path, make([]GraphPath, 0), square) // calculating subpaths by dividing the graph in subgraphs
 
 		results <- subPaths // sends the resulting paths into the chanel so they can be read later
 	}
 
-	r := make(chan [][]*Node, len(start.Neighbours))
+	r := make(chan []GraphPath, len(start.Neighbours))      // the channel and the waitgroup grantee the children will send their paths aproproatly
 	wg := new(sync.WaitGroup)
 
-	routine_counter := 0
-
 	for _, node_id := range start.Neighbours{
-		if !util.In(node_id, IdSliceFromNodeSlice(path)){
-			if cost > limit{ // if here adding the next node would not pass the limit
+		if !path.NodeIn(node_id){
+			if path.Cost >= limit{ // if here adding the next node would not pass the limit
 				continue
 			}
-			node, _ := FindNode(node_id)
 
-			p := make([]*Node, len(path))
-			copy(p, path)
-			go dissectPath(node, limit, cost, p, r, wg)
+			node, _ := FindNode(node_id)
+            
+            if node_coord := node.GetCoord(); !node_coord.IsInSquare(square){   // Validates the node is in the disected square
+                continue
+            }
+            
+			go dissectPath(node, limit, path.Copy(), r, wg)
 			wg.Add(1)
-			routine_counter += 1
 		}
 	}
 	
 	wg.Wait()
 	close(r)
 
-	paths = append(paths, path)
-	for subPaths := range r{
+	paths = append(paths, path)                     // This section add the current path to the paths
+	for subPaths := range r{                        // Then ummount the channel to receive the paths from the children ann add them to the paths
 		for i := 0; i< len(subPaths); i++{
 			paths = append(paths, subPaths[i])
 		}

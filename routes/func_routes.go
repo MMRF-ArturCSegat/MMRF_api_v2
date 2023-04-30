@@ -1,10 +1,10 @@
 package routes
 
-import(
-    "fmt"
-    "strconv"
-    "gat/db"
-    "net/http"
+import (
+	"fmt"
+	"gat/db"
+    "gat/util"
+	"net/http"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +15,7 @@ func allNodes(c *gin.Context){
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
+        return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -24,31 +25,31 @@ func allNodes(c *gin.Context){
 
 
 func SpreadRadius(c * gin.Context){
-	start_id, err := strconv.Atoi(c.Param("start"))
 
-	if err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
-		return
-	}
-	
-	start, err := db.FindNode(int64(start_id))
-	
-	if err != nil{
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
-		return
-	}
-
-	limit, err := strconv.Atoi(c.Param("limit"))
-
-	if err != nil{
+    type Body struct{
+        node_id         int64
+        limit           float32
+        square          util.Square
+    }
+    
+    var body Body
+    
+	if err := c.ShouldBindJSON(&body); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
 		return
 	}
 
-    paths := db.SpreadRadius(start, limit, 0, make([]*db.Node, 0), make([][]*db.Node, 0))
+    start, err := db.FindNode(body.node_id)
+
+    if err != nil{
+        c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+        return 
+    }
+
+    paths := db.SpreadRadius(start, body.limit,  db.GraphPath{Nodes: make([]*db.Node, 0), Cost: 0}, make([]db.GraphPath, 0), body.square)
 	
-	for _, e := range paths{
-		fmt.Println(db.IdSliceFromNodeSlice(e))
+	for _, path := range paths{
+        fmt.Println(path.IdSlice(), "cost: ", path.Cost)
 	}
 
     c.JSON(http.StatusOK, gin.H{"paths":paths,})
