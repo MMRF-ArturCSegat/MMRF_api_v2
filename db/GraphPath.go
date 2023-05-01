@@ -31,7 +31,11 @@ func (p * GraphPath) Append(n *Node){
     if len(p.Nodes) > 1{ // should not increase the cost less then 2 nodes
         last_node := p.Nodes[len(p.Nodes) - 1]
         coord := last_node.GetCoord()
-        p.Cost += coord.DistanceToInMeters(n.GetCoord())
+        if dist := coord.DistanceToInMeters(n.GetCoord()); dist <= 0{   // not real error fixing, jut for debungi, cause
+            p.Cost += 1                                                 // when i set up the db i put all nodes in the same coord
+        } else {
+            p.Cost += dist
+        }
     }
 }
 

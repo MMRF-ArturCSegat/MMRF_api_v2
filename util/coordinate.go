@@ -5,25 +5,25 @@ import (
 )
 
 type Coord struct {
-    lat float64
-    lng float64
+    Lat         float64     `json:"lat"`
+    Lng         float64     `json:"lng"`
 }
 
 type Square struct{
-    top Coord
-    bot Coord
+    Top         Coord       `json:"top"`
+    Bot         Coord       `json:"bot"`
 }
 
 
 func NewCoord(lat, lng float64) Coord {
-    return Coord {lat: lat, lng: lng}
+    return Coord {Lat: lat, Lng: lng}
 } 
 
 func (co * Coord) DistanceToInMeters(dest Coord) float32 {
-    lat1 := co.lat
-    lon1 := co.lng
-    lat2 := dest.lat
-    lon2 := dest.lng
+    lat1 := co.Lat
+    lon1 := co.Lng
+    lat2 := dest.Lat
+    lon2 := dest.Lng
     R := 6371000.0 // Earth radius in meters
     phi1 := lat1 * math.Pi / 180.0
     phi2 := lat2 * math.Pi / 180.0
@@ -39,11 +39,11 @@ func (co * Coord) IsInSquare(sq Square)  bool{
     valid_lat := false
     valid_lng := false
 
-    if co.lat >= sq.bot.lat && co.lat <= sq.top.lat{
+    if co.Lat >= sq.Bot.Lat && co.Lat <= sq.Top.Lat{
         valid_lat = true
     }
 
-    if co.lng >= sq.bot.lng && co.lng <= sq.top.lng{
+    if co.Lng >= sq.Bot.Lng && co.Lng <= sq.Top.Lng{
         valid_lng = true
     }
 
