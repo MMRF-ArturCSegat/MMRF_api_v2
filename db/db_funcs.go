@@ -19,6 +19,23 @@ func FindNode(id int64) (*Node, error){
 	return &node, nil
 }
 
+
+func ClosestNode(co util.Coord) *Node{
+    nodes, _ := AllNodes()
+    var best_node *Node
+    var dist float32 
+    dist = 0
+    
+    for _, node := range nodes{
+        if c := node.GetCoord(); c.DistanceToInMeters(co) < dist || dist == 0{
+            dist = c.DistanceToInMeters(co)
+            best_node = node
+        }
+    }
+    return best_node
+}
+
+
 func AllNodes() ([]*Node, error){
 	var nodes []*Node
 
@@ -32,7 +49,7 @@ func AllNodes() ([]*Node, error){
 
 
 func SpreadRadius(start *Node, limit float32, path GraphPath, paths []GraphPath, square util.Square) []GraphPath {
-    path.Append(start)      // add the current node to the current path
+    path.Append(start)
 
 	dissectPath := func(node *Node, limit float32, path GraphPath, results chan []GraphPath, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
 		defer wg.Done()
@@ -47,16 +64,18 @@ func SpreadRadius(start *Node, limit float32, path GraphPath, paths []GraphPath,
 
 	for _, node_id := range start.Neighbours{
 		if !path.NodeIn(node_id){
-			if path.Cost >= limit{ // if here adding the next node would not pass the limit
-				continue
-			}
-
 			node, _ := FindNode(node_id)
             
-            if node_coord := node.GetCoord(); !node_coord.IsInSquare(square){   // Validates the node is in the disected square
+            node_coord := node.GetCoord()
+
+            if !node_coord.IsInSquare(square){   // Validates the node is in the disected square             
                 continue
             }
-            
+
+            if (path.Cost + node_coord.DistanceToInMeters(start.GetCoord())) > limit{// Validates the node is in the disected square             
+                continue
+            }
+
 			go dissectPath(node, limit, path.Copy(), r, wg)
 			wg.Add(1)
 		}

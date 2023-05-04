@@ -55,3 +55,18 @@ func SpreadRadius(c * gin.Context){
 
     c.JSON(http.StatusOK, gin.H{"paths":paths,})
 }
+
+
+func ClosestNode(c * gin.Context){
+    
+    var coord util.Coord
+
+    if err := c.ShouldBindJSON(&coord); err != nil{
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
+		return
+    }
+    
+    node := db.ClosestNode(coord)
+    println(node)
+    c.JSON(http.StatusOK, gin.H{"closest-node": node})
+}

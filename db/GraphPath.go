@@ -1,6 +1,8 @@
 package db
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type GraphPath struct{
     Nodes           []*Node
@@ -26,17 +28,13 @@ func (p * GraphPath) IdSlice() []int64{                 // mostyle used for debu
 }
 
 func (p * GraphPath) Append(n *Node){                   
-    p.Nodes = append(p.Nodes, n)
-
-    if len(p.Nodes) > 1{ // should not increase the cost less then 2 nodes
+    if len(p.Nodes) >= 1{ // should not increase the cost less then 2 nodes
         last_node := p.Nodes[len(p.Nodes) - 1]
         coord := last_node.GetCoord()
-        if dist := coord.DistanceToInMeters(n.GetCoord()); dist <= 0{   // not real error fixing, jut for debungi, cause
-            p.Cost += 1                                                 // when i set up the db i put all nodes in the same coord
-        } else {
-            p.Cost += dist
-        }
+        dist := coord.DistanceToInMeters(n.GetCoord())
+        p.Cost += dist
     }
+    p.Nodes = append(p.Nodes, n)
 }
 
 func (p * GraphPath) Copy() GraphPath {                                 // important so that when passing a Path down to the children of a node
@@ -57,5 +55,5 @@ func (p * GraphPath) Copy() GraphPath {                                 // impor
 }
 
 func (p * GraphPath) Print(){
-    fmt.Println("nodes: ", p.IdSlice(), "Cost: ", p.Cost)
+    fmt.Printf("nodes: %v | Cost: %f \n", p.IdSlice(), p.Cost)
 }

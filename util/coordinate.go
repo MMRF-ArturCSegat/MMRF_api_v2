@@ -1,7 +1,7 @@
 package util
 
 import (
-    "math"
+	"math"
 )
 
 type Coord struct {
@@ -19,21 +19,27 @@ func NewCoord(lat, lng float64) Coord {
     return Coord {Lat: lat, Lng: lng}
 } 
 
-func (co * Coord) DistanceToInMeters(dest Coord) float32 {
-    lat1 := co.Lat
-    lon1 := co.Lng
-    lat2 := dest.Lat
-    lon2 := dest.Lng
-    R := 6371000.0 // Earth radius in meters
-    phi1 := lat1 * math.Pi / 180.0
-    phi2 := lat2 * math.Pi / 180.0
-    deltaPhi := (lat2 - lat1) * math.Pi / 180.0
-    deltaLambda := (lon2 - lon1) * math.Pi / 180.0
-    a := math.Sin(deltaPhi/2)*math.Sin(deltaPhi/2) + math.Cos(phi1)*math.Cos(phi2)*math.Sin(deltaLambda/2)*math.Sin(deltaLambda/2)
-    c := 2 * math.Atan2(math.Sqrt(a), math.Sqrt(1-a))
-    distance := R * c
-    return float32(distance)
+type Distance float32
+
+// Constants needed for distance calculations
+const (
+	EarthRadius       = 6371 * 1000.0
+	DoubleEarthRadius = 2 * EarthRadius
+	PiOver180         = math.Pi / 180
+)
+
+// DistanceBetween calculates the distance between two coordinates
+func DistanceBetween(a, b Coord) float32 {
+	value := 0.5 - math.Cos((b.Lat-a.Lat)*PiOver180)/2 + math.Cos(a.Lat*PiOver180)*math.Cos(b.Lat*PiOver180)*(1-math.Cos((b.Lng-a.Lng)*PiOver180))/2
+	return DoubleEarthRadius * float32(math.Asin(math.Sqrt(value)))
 }
+
+// DistanceTo calculates the distance from this coordinate to another coordinate
+func (c Coord) DistanceToInMeters(other Coord) float32 {
+    dist :=  DistanceBetween(c, other)
+	return dist
+} 
+
 
 func (co * Coord) IsInSquare(sq Square)  bool{
     valid_lat := false
