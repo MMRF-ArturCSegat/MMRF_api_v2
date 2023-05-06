@@ -1,8 +1,0 @@
-NEW CLOSEST POSTE FUNCTION
-
-GET LAT LNG FROM USER
-
-TOP = {LAT + variation, LNG + variation}
-BOT = {LAT - variation, LNG - variation}
-
-SELECT * FROM nodes WHERE lat <= BOT and lat >= TOP and lng <= BOT and lng >= TOP LIMIT 1

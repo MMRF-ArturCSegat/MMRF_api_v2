@@ -3,7 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
-	"gat/util"
+	"github.com/MMRF-ArturCSegat/MMRF_api_v2/util"
 	"sync"
 )
 

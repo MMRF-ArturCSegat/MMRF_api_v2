@@ -2,8 +2,8 @@ package routes
 
 import (
 	"fmt"
-	"gat/db"
-    "gat/util"
+	"github.com/MMRF-ArturCSegat/MMRF_api_v2/db"
+    "github.com/MMRF-ArturCSegat/MMRF_api_v2/util"
 	"net/http"
 	"github.com/gin-gonic/gin"
 )

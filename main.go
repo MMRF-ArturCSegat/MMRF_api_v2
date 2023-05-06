@@ -1,8 +1,8 @@
 package main
 
 import (
-	"gat/db"
-	"gat/routes"
+	"github.com/MMRF-ArturCSegat/MMRF_api_v2/db"
+	"github.com/MMRF-ArturCSegat/MMRF_api_v2/routes"
 )
 
 func init(){
