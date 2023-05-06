@@ -52,7 +52,7 @@ func SpreadRadius(start *Node, limit float32, path GraphPath, paths []GraphPath,
     path.Append(start)
 
 	dissectPath := func(node *Node, limit float32, path GraphPath, results chan []GraphPath, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
-		defer wg.Done()
+        defer wg.Done()
 	
 		subPaths := SpreadRadius(node, limit, path, make([]GraphPath, 0), square) // calculating subpaths by dividing the graph in subgraphs
 
