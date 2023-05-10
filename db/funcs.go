@@ -3,8 +3,9 @@ package db
 import (
 	"errors"
 	"fmt"
-	"github.com/MMRF-ArturCSegat/MMRF_api_v2/util"
 	"sync"
+
+	"github.com/MMRF-ArturCSegat/MMRF_api_v2/util"
 )
 
 func FindNode(id int64) (*Node, error){
@@ -51,35 +52,55 @@ func AllNodes() ([]*Node, error){
 func SpreadRadius(start *Node, limit float32, path GraphPath, paths []GraphPath, square util.Square) []GraphPath {
     path.Append(start)
 
-	dissectPath := func(node *Node, limit float32, path GraphPath, results chan []GraphPath, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
-        defer wg.Done()
-	
-		subPaths := SpreadRadius(node, limit, path, make([]GraphPath, 0), square) // calculating subpaths by dividing the graph in subgraphs
-
-		results <- subPaths // sends the resulting paths into the chanel so they can be read later
-	}
-
+	// dissectPath := func(node *Node, path GraphPath, results chan []GraphPath, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
+	// }
+	//
 	r := make(chan []GraphPath, len(start.Neighbours))      // the channel and the waitgroup grantee the children will send their paths aproproatly
 	wg := new(sync.WaitGroup)
 
+    valid_neighbours := make([]*Node, 0)
+
 	for _, node_id := range start.Neighbours{
-		if !path.NodeIn(node_id){
-			node, _ := FindNode(node_id)
-            
-            node_coord := node.GetCoord()
+        if util.In(node_id, path.IdSlice()){ // Validates no backtracking
+            continue
+        }
 
-            if !node_coord.IsInSquare(square){   // Validates the node is in the disected square             
-                continue
-            }
+        node, _ := FindNode(node_id)
 
-            if (path.Cost + node_coord.DistanceToInMeters(start.GetCoord())) > limit{// Validates the node is in the disected square             
-                continue
-            }
+        node_coord := node.GetCoord()
 
-			go dissectPath(node, limit, path.Copy(), r, wg)
-			wg.Add(1)
-		}
+        if !node_coord.IsInSquare(square){   // Validates the node is in the disected square             
+            continue
+        }
+
+        if (path.Cost + node_coord.DistanceToInMeters(start.GetCoord())) > limit{// Validates the node is in the disected square             
+            continue
+        }
+
+        valid_neighbours = append(valid_neighbours, node)
 	}
+    
+    if len(valid_neighbours) == 1{                                                  
+        println(start.ID, " transfered its thread to  ", valid_neighbours[0].ID)
+        r <- SpreadRadius(valid_neighbours[0], limit, path.Copy(), make([]GraphPath, 0), square)
+    }
+    if len(valid_neighbours) > 1 {                                                  // Theses two if's generate the selective threading
+        routine_counter := 0 // debug var for testing                               // We will only crate a new thread if the node
+        for _, valid_node := range valid_neighbours{                                // Has more than two valide neighbours, otherwise
+            fmt.Println(start.ID, "created a new routine for ", valid_node.ID)      // Just keep the same thread computing
+			go func(){
+                defer wg.Done()
+
+                subPaths := SpreadRadius(valid_node, limit, path.Copy(), make([]GraphPath, 0), square) 
+
+                r <- subPaths 
+            }()
+
+			wg.Add(1)
+            routine_counter += 1
+            fmt.Println("created ", routine_counter, " routines so far")
+        }
+    }
 	
 	wg.Wait()
 	close(r)
