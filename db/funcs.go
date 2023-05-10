@@ -51,8 +51,12 @@ func AllNodes() ([]*Node, error){
 
 func SpreadRadius(start *Node, limit float32, path GraphPath, paths []GraphPath, square util.Square) []GraphPath {
     path.Append(start)
-	r := make(chan []GraphPath, len(start.Neighbours))      // the channel and the waitgroup grantee the children
-	wg := new(sync.WaitGroup)                               // will send their paths aproproatly
+
+	// dissectPath := func(node *Node, path GraphPath, results chan []GraphPath, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
+	// }
+	//
+	r := make(chan []GraphPath, len(start.Neighbours))      // the channel and the waitgroup grantee the children will send their paths aproproatly
+	wg := new(sync.WaitGroup)
 
     valid_neighbours := make([]*Node, 0)
 
