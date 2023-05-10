@@ -50,7 +50,7 @@ func AddEdge(n1, n2 *Node) ([]*Node ,error){
 func ConnectNodes(n1, n2 *Node) error {
 	fmt.Println("Connecting nodes")
     
-    if !util.In(n2.ID, n1.Neighbours){
+    if !util.In(n2.ID, n1.Neighbours) && n1.ID != n2.ID{
         val1 := append(n1.Neighbours, n2.ID)
         fmt.Println("val1",val1)
         if err := db.Model(n1).UpdateColumn("neighbours", val1).Error; err != nil {
@@ -58,7 +58,7 @@ func ConnectNodes(n1, n2 *Node) error {
         }
     }
 
-    if !util.In(n1.ID, n2.Neighbours){
+    if !util.In(n1.ID, n2.Neighbours) && n1.ID != n2.ID{
         val2 := append(n2.Neighbours, n1.ID)
         fmt.Println("val2",val2)
         if err := db.Model(n2).UpdateColumn("neighbours", val2).Error; err != nil {

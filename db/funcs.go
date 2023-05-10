@@ -52,9 +52,6 @@ func AllNodes() ([]*Node, error){
 func SpreadRadius(start *Node, limit float32, path GraphPath, paths []GraphPath, square util.Square) []GraphPath {
     path.Append(start)
 
-	// dissectPath := func(node *Node, path GraphPath, results chan []GraphPath, wg * sync.WaitGroup) { // function will be used to fill a channe with paths
-	// }
-	//
 	r := make(chan []GraphPath, len(start.Neighbours))      // the channel and the waitgroup grantee the children will send their paths aproproatly
 	wg := new(sync.WaitGroup)
 
@@ -81,24 +78,21 @@ func SpreadRadius(start *Node, limit float32, path GraphPath, paths []GraphPath,
 	}
     
     if len(valid_neighbours) == 1{                                                  
-        println(start.ID, " transfered its thread to  ", valid_neighbours[0].ID)
         r <- SpreadRadius(valid_neighbours[0], limit, path.Copy(), make([]GraphPath, 0), square)
     }
     if len(valid_neighbours) > 1 {                                                  // Theses two if's generate the selective threading
         routine_counter := 0 // debug var for testing                               // We will only crate a new thread if the node
         for _, valid_node := range valid_neighbours{                                // Has more than two valide neighbours, otherwise
-            fmt.Println(start.ID, "created a new routine for ", valid_node.ID)      // Just keep the same thread computing
-			go func(){
+			go func(node *Node){                                                    // Just keep the same thread computing              
                 defer wg.Done()
 
-                subPaths := SpreadRadius(valid_node, limit, path.Copy(), make([]GraphPath, 0), square) 
+                subPaths := SpreadRadius(node, limit, path.Copy(), make([]GraphPath, 0), square) 
 
                 r <- subPaths 
-            }()
+            }(valid_node)
 
 			wg.Add(1)
             routine_counter += 1
-            fmt.Println("created ", routine_counter, " routines so far")
         }
     }
 	
