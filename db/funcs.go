@@ -21,19 +21,58 @@ func FindNode(id int64) (*Node, error){
 }
 
 
-func ClosestNode(co util.Coord) *Node{
+func ClosestNode(co util.Coord) (*Node, float32){
+    type result struct{     // type for distance calulation
+        node *Node
+        dist float32
+    }
+
+
+    computer := func(from, to int, arr []*Node, results chan result, wg * sync.WaitGroup){      // worker function to calculate a section of the array
+        fc := from
+        defer wg.Done()
+        best_node := arr[0]
+        best_dist := best_node.GetCoord().DistanceToInMeters(co)
+        for from < to {
+            if c := arr[from].GetCoord(); c.DistanceToInMeters(co) < best_dist || best_dist == 0{
+                best_dist = c.DistanceToInMeters(co)
+                best_node = arr[from]
+            }
+            from += 1
+        }
+        result := result{node: best_node, dist: best_dist}
+        fmt.Println("from ", fc, "to ", to , "best was ", result.node, result.dist)
+        results <- result
+    }
+
     nodes, _ := AllNodes()
-    var best_node *Node
-    var dist float32 
-    dist = 0
-    
-    for _, node := range nodes{
-        if c := node.GetCoord(); c.DistanceToInMeters(co) < dist || dist == 0{
-            dist = c.DistanceToInMeters(co)
-            best_node = node
+    results :=  make(chan result, 10)
+    wg := new(sync.WaitGroup)
+
+	step_c := len(nodes)/10
+	step_0 := 0
+	step := step_c
+    for i := 0; i<10; i++{
+        println("s0", step_0, "sp", step)
+        go computer(step_0, step, nodes, results, wg)
+        step_0 += step_c        // weird foor loop call the worker for each 10% of the nodes slice
+        step += step_c
+        wg.Add(1)
+    }
+
+    wg.Wait()
+    close(results)
+
+    best_result := <- results
+
+    for result := range results {           // collection and calulation
+        if result.dist < best_result.dist{
+            best_result = result
         }
     }
-    return best_node
+
+        fmt.Println("total best ", best_result.node, best_result.dist)
+    return best_result.node, best_result.dist   // unmounting of best result for no type conflicts
 }
 
 

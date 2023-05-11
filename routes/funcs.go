@@ -28,6 +28,7 @@ func SpreadRadius(c * gin.Context){
 
     type Body struct{
         Node        db.Node         `json:"node"`
+        Cost        float32         `json:"cost"`
         Limit       float32         `json:"limit"`
         Square      util.Square     `json:"square"`
     }
@@ -46,8 +47,8 @@ func SpreadRadius(c * gin.Context){
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         return 
     }
-
-    paths := db.SpreadRadius(start, body.Limit,  db.GraphPath{Nodes: make([]*db.Node, 0), Cost: 0}, make([]db.GraphPath, 0), body.Square)
+                                //  this subtracion happens so a inital cost can be taken into account
+    paths := db.SpreadRadius(start, (body.Limit - body.Cost),  db.GraphPath{Nodes: make([]*db.Node, 0), Cost: 0}, make([]db.GraphPath, 0), body.Square)
 	
 	for _, path := range paths{
         fmt.Println(path.IdSlice(), "cost: ", path.Cost)
@@ -66,7 +67,13 @@ func ClosestNode(c * gin.Context){
 		return
     }
     
-    node := db.ClosestNode(coord)
-    println(node)
-    c.JSON(http.StatusOK, gin.H{"closest-node": node})
+    node, dist := db.ClosestNode(coord)
+    println(node, dist)
+    
+    type result struct{
+        Node *db.Node `json:"node"`
+        Dist float32  `json:"dist"`
+    }
+
+    c.JSON(http.StatusOK, gin.H{"closest-pair": result{Node: node, Dist: dist},})
 }
