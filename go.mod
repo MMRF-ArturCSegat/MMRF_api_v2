@@ -1,4 +1,4 @@
-module github.com/MMRF-ArturCSegat/MMRF_api_v2
+module github.com/UFSM-Routelib/routelib_api
 
 go 1.20
 

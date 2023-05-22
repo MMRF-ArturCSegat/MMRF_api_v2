@@ -4,7 +4,7 @@ import(
     "fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"github.com/MMRF-ArturCSegat/MMRF_api_v2/db"
+	"github.com/UFSM-Routelib/routelib_api/db"
 )
 
 func addNode(c *gin.Context){

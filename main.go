@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/MMRF-ArturCSegat/MMRF_api_v2/db"
-	"github.com/MMRF-ArturCSegat/MMRF_api_v2/routes"
+	"github.com/UFSM-Routelib/routelib_api/db"
+	"github.com/UFSM-Routelib/routelib_api/routes"
 )
 
 func init(){

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/MMRF-ArturCSegat/MMRF_api_v2/util"
+	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
 func AddNode(n *Node) (*Node, error){

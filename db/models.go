@@ -2,7 +2,7 @@ package db
 
 import (
 	pq "github.com/lib/pq"
-    "github.com/MMRF-ArturCSegat/MMRF_api_v2/util"
+    "github.com/UFSM-Routelib/routelib_api/util"
 )
 
 
