@@ -27,9 +27,8 @@ func ClosestNode(co util.Coord) (*Node, float32){
         dist float32
     }
 
-
-    computer := func(from, to int, arr []*Node, results chan result, wg * sync.WaitGroup){      // worker function to calculate a section of the array
-        fc := from
+    // worker function to calculate a section of the array
+    computer := func(from, to int, arr []*Node, results chan result, wg * sync.WaitGroup){
         defer wg.Done()
         best_node := arr[0]
         best_dist := best_node.GetCoord().DistanceToInMeters(co)
@@ -41,7 +40,6 @@ func ClosestNode(co util.Coord) (*Node, float32){
             from += 1
         }
         result := result{node: best_node, dist: best_dist}
-        fmt.Println("from ", fc, "to ", to , "best was ", result.node, result.dist)
         results <- result
     }
 
@@ -71,7 +69,6 @@ func ClosestNode(co util.Coord) (*Node, float32){
         }
     }
 
-        fmt.Println("total best ", best_result.node, best_result.dist)
     return best_result.node, best_result.dist   // unmounting of best result for no type conflicts
 }
 
