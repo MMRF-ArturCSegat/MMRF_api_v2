@@ -2,45 +2,52 @@ package routes
 
 import (
 	"fmt"
-	"github.com/UFSM-Routelib/routelib_api/db"
-    "github.com/UFSM-Routelib/routelib_api/util"
 	"net/http"
+
+	gm"github.com/UFSM-Routelib/routelib_api/graph_model"
+	"github.com/UFSM-Routelib/routelib_api/sessions"
+	"github.com/UFSM-Routelib/routelib_api/util"
 	"github.com/gin-gonic/gin"
 )
 
 func allNodes(c *gin.Context){
-	nodes, err := db.AllNodes()
+    cookie_string, cookie_err := c.Cookie("session_id")
+    csvg, err := sessions.GetCSVG(cookie_string)
+    if err != nil || cookie_err != nil{
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "no valid session"})
+        return 
+    }
 
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
-        return
-	}
+    nodes := csvg.AllNodes()
 
-	c.JSON(http.StatusOK, gin.H{
-		"nodes": nodes,
-	})
+    c.JSON(http.StatusOK, gin.H{"nodes": nodes})
 }
 
 
 func SpreadRadius(c * gin.Context){
 
     type Body struct{
-        Node        db.Node         `json:"node"`
+        Node        gm.GraphNode    `json:"node"`
         Cost        float32         `json:"cost"`
         Limit       float32         `json:"limit"`
         Square      util.Square     `json:"square"`
     }
-    
+   
     var body Body
-    
+   
 	if err := c.ShouldBindJSON(&body); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
 		return
 	}
 
-    start, err := db.FindNode(body.Node.ID)
+    cookie_string, cookie_err := c.Cookie("session_id")
+    csvg, csvg_err := sessions.GetCSVG(cookie_string)
+    if cookie_err != nil || csvg_err !=  nil{
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "no valid session"})
+    }
+
+
+    start, err := csvg.FindNode(body.Node.ID)
     fmt.Println("bn", body)
 
     if err != nil{
@@ -48,8 +55,8 @@ func SpreadRadius(c * gin.Context){
         return 
     }
                                 //  this subtracion happens so a inital cost can be taken into account
-    paths := db.SpreadRadius(start, (body.Limit - body.Cost),  db.GraphPath{Nodes: make([]*db.Node, 0), Cost: 0}, make([]db.GraphPath, 0), body.Square)
-	
+    paths := csvg.SpreadRadius(start, (body.Limit - body.Cost),  gm.GraphPath{Nodes: make([]*gm.GraphNode, 0), Cost: 0}, make([]gm.GraphPath, 0), body.Square)
+
 	for _, path := range paths{
         fmt.Println(path.IdSlice(), "cost: ", path.Cost)
 	}
@@ -59,20 +66,27 @@ func SpreadRadius(c * gin.Context){
 
 
 func ClosestNode(c * gin.Context){
-    
+   
     var coord util.Coord
 
     if err := c.ShouldBindJSON(&coord); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
 		return
     }
-    
-    node, dist := db.ClosestNode(coord)
+
+    cookie_string, cookie_err := c.Cookie("session_id")
+    csvg, csvg_err := sessions.GetCSVG(cookie_string)
+    if cookie_err != nil || csvg_err !=  nil{
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "no valid session"})
+    }
+
+   
+    node, dist := csvg.ClosestNode(coord)
     println(node, dist)
-    
+   
     type result struct{
-        Node *db.Node `json:"node"`
-        Dist float32  `json:"dist"`
+        Node    *gm.GraphNode   `json:"node"`
+        Dist    float32         `json:"dist"`
     }
 
     c.JSON(http.StatusOK, gin.H{"closest-pair": result{Node: node, Dist: dist},})

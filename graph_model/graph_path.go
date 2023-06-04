@@ -1,11 +1,12 @@
-package db
+
+package graph_model
 
 import (
 	"fmt"
 )
 
 type GraphPath struct{
-    Nodes           []*Node
+    Nodes           []*GraphNode
     Cost            float32
 }
 
@@ -27,7 +28,7 @@ func (p * GraphPath) IdSlice() []int64{                 // mostyle used for debu
     return return_slice
 }
 
-func (p * GraphPath) Append(n *Node){                   
+func (p * GraphPath) Append(n *GraphNode){                   
     if len(p.Nodes) >= 1{ // should not increase the cost less then 2 nodes
         last_node := p.Nodes[len(p.Nodes) - 1]
         coord := last_node.GetCoord()
@@ -38,7 +39,7 @@ func (p * GraphPath) Append(n *Node){
 }
 
 func (p * GraphPath) Copy() GraphPath {                                 // important so that when passing a Path down to the children of a node
-    b := GraphPath{Nodes: make([]*Node, len(p.Nodes)), Cost: 0}         // the path must be deep copied so that children dont modify each others channels
+    b := GraphPath{Nodes: make([]*GraphNode, len(p.Nodes)), Cost: 0}         // the path must be deep copied so that children dont modify each others channels
     b.Cost = p.Cost                                                     // causing weird bugs, the modifying happens as p.Nodes is a slice, wich is a reference to a commom array
 
     for i, n := range p.Nodes {

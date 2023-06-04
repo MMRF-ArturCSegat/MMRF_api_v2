@@ -1,5 +1,7 @@
 package util
 
+import "errors"
+
 func In[T comparable](e T, list []T) bool{
     for _, item := range list{
         if item == e{
@@ -27,3 +29,12 @@ func SliceInMatrix[T comparable](m [][]T, s[]T) bool{
     return false
 }
 
+
+func IndexOf[T comparable](thing T, array []T) (int, error){
+    for index, value := range array{
+        if value == thing{
+            return index, nil
+        }
+    }
+    return -1, errors.New("item not in array")
+}

@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+
 func home(c *gin.Context){
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Lol funny api",
@@ -13,17 +14,15 @@ func home(c *gin.Context){
 }
 
 
-
-
-
 func SetupRouter() *gin.Engine{
 	r := gin.Default()
     
 	// Set up CORS middleware
     r.Use(func(c *gin.Context) {
-	    c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+        c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:2000")
         c.Writer.Header().Set("Access-Control-Allow-Methods", "*")
         c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
+        c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 
         if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(http.StatusNoContent)
@@ -31,11 +30,9 @@ func SetupRouter() *gin.Engine{
         c.Next()
     })
     r.GET("/", home)
-    r.POST("/add-node/", addNode)
-	r.POST("/add-edge/", addEdge)
+    r.POST("/upload_csv/", parse_csv_to_obj)
 	r.GET("/all-nodes/", allNodes)
-	r.POST("/connect/", connect)
-	r.POST("/spread-radius/", SpreadRadius)
+    r.POST("/spread-radius/", SpreadRadius)
     r.POST("/closest-node/", ClosestNode)
 	return r
 }
