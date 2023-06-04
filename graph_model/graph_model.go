@@ -3,6 +3,7 @@ package graph_model
 import (
 	"errors"
 	"fmt"
+	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
 // represents a unweighted undirected graph read from a csv
@@ -33,8 +34,12 @@ func (csvg * CSV_Graph) AddEdge(n1, n2 *GraphNode){
 
 
 func (csvg * CSV_Graph) connectNode (node1, node2 *GraphNode){
-    node1.NeighboursID = append(node1.NeighboursID, node2.ID)
-    node2.NeighboursID = append(node2.NeighboursID, node1.ID)
+    if !util.In(node2.ID, node1.NeighboursID) && node1.ID != node2.ID{
+        node1.NeighboursID = append(node1.NeighboursID, node2.ID)
+    }
+    if !util.In(node1.ID, node2.NeighboursID) && node2.ID != node1.ID{
+        node2.NeighboursID = append(node2.NeighboursID, node1.ID)
+    }
 }
 
 

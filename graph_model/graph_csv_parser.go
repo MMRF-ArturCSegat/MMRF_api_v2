@@ -6,7 +6,6 @@ import (
 	"mime/multipart"
 	"strconv"
 	"strings"
-
 	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
