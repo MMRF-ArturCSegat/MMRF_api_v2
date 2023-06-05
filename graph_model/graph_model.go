@@ -56,7 +56,8 @@ func (csvg * CSV_Graph) FindNode(id int64) (*GraphNode, error){
 func (csvg CSV_Graph) Print(){
     for node_id, node := range csvg.Nodes{
         fmt.Printf("%v: ", node_id)
-        for _, neighbour := range node.NeighboursID{
+        for _, nei := range node.NeighboursID{
+            neighbour, _  := csvg.FindNode(nei)
             fmt.Printf(" %v ", neighbour)
         }
         fmt.Print("\n")
