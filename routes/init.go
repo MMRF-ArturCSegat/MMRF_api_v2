@@ -19,7 +19,7 @@ func SetupRouter() *gin.Engine{
     
 	// Set up CORS middleware
     r.Use(func(c *gin.Context) {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:2000")
+        c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
         c.Writer.Header().Set("Access-Control-Allow-Methods", "*")
         c.Writer.Header().Set("Access-Control-Allow-Headers", "*")
         c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
