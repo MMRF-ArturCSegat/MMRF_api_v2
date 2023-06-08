@@ -20,8 +20,13 @@ func (n * GraphNode) GetCoord() util.Coord{
 }                                               // Instead Nodes will have those two atributtes and when you need 
                                                 //to useit as a Coord type just call the builder
 
-func (n GraphNode) String () string {
+func (n GraphNode) Debug () string {
     return fmt.Sprintf(" node[%v, %v, %v, %v] ", n.ID, n.Lat, n.Lng, n.NeighboursID)
+}
+
+
+func (n * GraphNode) String() string {
+    return fmt.Sprintf("%v\t%v\t%v", n.ID, n.Lat, n.Lng)
 }
 
 

@@ -48,3 +48,11 @@ func (co *Coord) IsInSquare(sq Square) bool {
     return validLat && validLng
 }
 
+
+func DefaultMaxSquare() Square {
+    return Square{
+        Top: Coord{Lat: 90.0, Lng: -180.0},       
+        Bot: Coord{Lat: -90.0, Lng: 180.0},     
+    }
+}
+

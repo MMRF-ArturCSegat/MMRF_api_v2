@@ -58,7 +58,7 @@ func (csvg CSV_Graph) Print(){
         fmt.Printf("%v: ", node_id)
         for _, nei := range node.NeighboursID{
             neighbour, _  := csvg.FindNode(nei)
-            fmt.Printf(" %v ", neighbour)
+            fmt.Printf(" %v ", neighbour.Debug())
         }
         fmt.Print("\n")
     }
