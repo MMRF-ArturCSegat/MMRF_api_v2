@@ -34,6 +34,6 @@ func SetupRouter() *gin.Engine{
 	r.GET("/all-nodes/", allNodes)
     r.POST("/spread-radius/", SpreadRadius)
     r.POST("/closest-node/", ClosestNode)
-    r.GET("/txt-sub-graph/:node", generate_txt)
+    r.POST("/txt-sub-graph/", generate_txt)
 	return r
 }
