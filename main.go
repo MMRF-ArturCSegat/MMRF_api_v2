@@ -2,7 +2,7 @@ package main
 
 import (
 	"time"
-
+	foc"github.com/UFSM-Routelib/routelib_api/fiber_optic_components"
 	"github.com/UFSM-Routelib/routelib_api/routes"
 	"github.com/UFSM-Routelib/routelib_api/sessions"
 )
@@ -14,6 +14,12 @@ func session_cleaner(){
         sessions.CleanExpiredSessions()
     }
 }
+
+
+func init(){
+    foc.ConnectFBCDatabase()
+}
+
 
 func main(){
 	r := routes.SetupRouter()

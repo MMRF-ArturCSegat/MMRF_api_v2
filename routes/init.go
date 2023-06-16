@@ -30,10 +30,29 @@ func SetupRouter() *gin.Engine{
         c.Next()
     })
     r.GET("/", home)
+
+    // graph interaction
     r.POST("/upload_csv/", parse_csv_to_obj)
 	r.GET("/all-nodes/", allNodes)
     r.POST("/spread-radius/", SpreadRadius)
     r.POST("/closest-node/", ClosestNode)
     r.POST("/txt-sub-graph/", generate_txt)
+
+    // fiber optic component storage
+    r.GET("/get-all-cables/", all_cables)
+    r.GET("/get-cable/:id/", get_cable)
+    r.POST("/add-cable/", add_cable)
+
+    r.GET("/get-all-spliceboxes/", all_boxes)
+    r.GET("/get-splicebox/:id/", get_box)
+    r.POST("/add-splicebox/", add_box)
+
+    r.GET("/get-all-uspliters/", all_u_spliters)
+    r.GET("/get-uspliter/:id/", get_u_spliter)
+    r.POST("/add-uspliter/", add_u_spliter)
+
+    r.GET("/get-all-bspliters/", all_b_spliters)
+    r.GET("/get-bspliter/:id/", get_b_spliter)
+    r.POST("/add-bspliter/", add_b_spliter)
 	return r
 }
