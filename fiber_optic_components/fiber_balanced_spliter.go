@@ -1,5 +1,7 @@
 package fiber_optic_components
 
+import "fmt"
+
 
 type FiberBalancedSpliter struct{
     Id                      uint        `json:"id"`
@@ -12,3 +14,13 @@ type FiberBalancedSpliter struct{
 func (fbs FiberBalancedSpliter) GetId() uint {
     return fbs.Id
 }
+
+
+func (fb FiberBalancedSpliter) String() string{
+    str := fmt.Sprintf("ID\n%v\n", fb.Id)
+    str += fmt.Sprintf("Cost\n%v\n", fb.Cost)
+    str += fmt.Sprintf("LossRatio\n%v\n", fb.Loss_ratio)
+    str += fmt.Sprintf("SplitRation\n%v\n", fb.Split_ratio)
+    return str
+}
+

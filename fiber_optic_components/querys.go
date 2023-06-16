@@ -6,6 +6,7 @@ import "errors"
 // they have very similar querys
 type db_obj interface {
     GetId() uint
+    String() string
 }
 
 func GetAll[T db_obj](objs []T) ([]T, error){
@@ -19,7 +20,7 @@ func GetAll[T db_obj](objs []T) ([]T, error){
 
 
 func GetOne(id uint, obj db_obj) (db_obj, error){
-    res := db.First(&obj,"id = ?", id)
+    res := db.Find(&obj, id)
 
 	if res.RowsAffected == 0 || res.Error != nil {
 		return nil, errors.New("Not in database")

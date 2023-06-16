@@ -38,3 +38,6 @@ func IndexOf[T comparable](thing T, array []T) (int, error){
     }
     return -1, errors.New("item not in array")
 }
+
+
+

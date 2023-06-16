@@ -7,11 +7,20 @@ import (
 	gm "github.com/UFSM-Routelib/routelib_api/graph_model"
 	"github.com/UFSM-Routelib/routelib_api/sessions"
 	"github.com/gin-gonic/gin"
+	sgo"github.com/UFSM-Routelib/routelib_api/sub_graph_optimization"
 )
 
 func generate_txt(c * gin.Context){
-    var paths []gm.GraphPath
-	if err := c.ShouldBindJSON(&paths); err != nil{
+    type Body struct {
+        Paths          []gm.GraphPath       `json:"paths"`
+        Cables         []uint               `json:"cables"`
+        Spliceboxes    []uint               `json:"boxes"`
+        Uspliters      []uint               `json:"uspliters"`
+        Bspliters      []uint               `json:"bspliters"`
+    }
+
+    var body Body
+	if err := c.ShouldBindJSON(&body); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
 		return
 	}
@@ -26,8 +35,8 @@ func generate_txt(c * gin.Context){
         return 
     }
 
-    sub_graph := gm.Slice_of_paths_to_csvg(paths)
-    file, file_err := sub_graph.Build_txt_file()
+    sub_graph := gm.Slice_of_paths_to_csvg(body.Paths)
+    file, file_err :=  sgo.GenerateSubGraphOptimizationFile(sub_graph, body.Cables, body.Spliceboxes, body.Uspliters, body.Bspliters)
     if file_err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": file_err.Error()})
         return
@@ -40,3 +49,8 @@ func generate_txt(c * gin.Context){
     c.File("/home/arturcs/Documents/routelib_api/sub_graph.txt")
     os.Remove("/home/arturcs/Documents/routelib_api/sub_graph.txt")
 }
+
+
+
+
+
