@@ -3,14 +3,16 @@ package instance_generation
 import (
 	"fmt"
 	"os"
-
 	foc "github.com/UFSM-Routelib/routelib_api/fiber_optic_components"
 	gm "github.com/UFSM-Routelib/routelib_api/graph_model"
 	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
 
-func GenerateSubGraphOptimizationFile(sub_graphs []*gm.CSV_Graph, clients []util.Coord, cable_IDs, splicebox_IDs, uspliter_IDs, bspliter_IDs []uint32) (*os.File, error){
+func GenerateSubGraphOptimizationFile(sub_graphs []*gm.CSV_Graph, clients []util.Coord, entrys, cable_IDs, splicebox_IDs, uspliter_IDs, bspliter_IDs []uint32) (*os.File, error){
+    // in theory, entys should be aligned to sub_graphs
+    // so the 0th entry is the root that generated the 0th sub_graph
+
     file_content := fmt.Sprintf("Clients %v\n", len(clients))
         
     // adding all nodes and edges
@@ -35,6 +37,15 @@ func GenerateSubGraphOptimizationFile(sub_graphs []*gm.CSV_Graph, clients []util
     }
     file_content += fmt.Sprintf("Edges %v\n", edges_count)
     file_content += edges_content
+
+    // adding virtual edges, optimization of the combinatory algo
+    // TODO: add proper reference 
+
+    for index, sb := range sub_graphs{
+        for _, node := range sb.AllNodes(){
+            file_content += fmt.Sprintf("%v\t%v\tvirtual\n", entrys[index], node.ID)
+        }
+    }
 
     // adding all fiber components
     file_content += "Cable " + fmt.Sprint(len(cable_IDs)) + "\n"

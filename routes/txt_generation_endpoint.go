@@ -16,6 +16,7 @@ func generate_txt(c * gin.Context){
     type Body struct {
         Paths          [][]gm.GraphPath     `json:"paths"`
         Clients        []util.Coord         `json:"clients"`
+        Entrys         []uint32             `json:"entrys"`
         Cables         []uint32             `json:"cables"`
         Spliceboxes    []uint32             `json:"boxes"`
         Uspliters      []uint32             `json:"uspliters"`
@@ -42,7 +43,7 @@ func generate_txt(c * gin.Context){
     for _, path := range body.Paths{
         paths = append(paths, gm.Slice_of_paths_to_csvg(path))
     }
-    file, file_err := ig.GenerateSubGraphOptimizationFile(paths,body.Clients, body.Cables, body.Spliceboxes, body.Uspliters, body.Bspliters)
+    file, file_err := ig.GenerateSubGraphOptimizationFile(paths, body.Clients, body.Entrys, body.Cables, body.Spliceboxes, body.Uspliters, body.Bspliters)
     if file_err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": file_err.Error()})
         return
