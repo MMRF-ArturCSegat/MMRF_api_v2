@@ -32,7 +32,7 @@ func get_u_spliter(c * gin.Context){
 
     var obj foc.FiberUnbalancedSpliter
 
-    uspliter, err := foc.GetOne(uint(id), obj)
+    uspliter, err := foc.GetOne(uint32(id), obj)
 
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})

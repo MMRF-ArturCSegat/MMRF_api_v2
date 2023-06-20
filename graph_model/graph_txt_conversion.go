@@ -5,8 +5,7 @@ import (
 )
 
 
-func (csvg * CSV_Graph) all_nodes_string() string {
-    read_nodes := make(map[int64]bool)
+func (csvg * CSV_Graph) String_from_all_nodes(read_nodes map[uint32]bool) (string, int) {
     nodes_string := ""
     for _, node := range csvg.Nodes{
         if visited, exists := read_nodes[node.ID]; !exists || !visited{
@@ -15,29 +14,21 @@ func (csvg * CSV_Graph) all_nodes_string() string {
         }
         continue
     }
-    return nodes_string
+    return nodes_string,  len(read_nodes)
 }
 
 
-func (csvg * CSV_Graph) all_edges_string() string {
-    read_nodes := make(map[int64]bool)
+func (csvg * CSV_Graph) String_from_all_edges(read_nodes map[uint32]bool) (string, int){
+    edges_count := 0
     edges_string := ""
     for _, node := range csvg.Nodes {
         if visited, exists := read_nodes[node.ID]; !visited || !exists {
             for _, neighbour_id := range node.NeighboursID {
                 read_nodes[node.ID] = true
                 edges_string += fmt.Sprintf("%v\t%v\n", node.ID, neighbour_id)
+                edges_count++
             }
         }
     }
-    return edges_string
-}
-
-func (csvg * CSV_Graph) Build_txt_file_content()  string{
-    file_content := ""
-    file_content += "Nodes\n"
-    file_content += csvg.all_nodes_string()
-    file_content += "Edges\n"
-    file_content += csvg.all_edges_string()
-    return file_content
+    return edges_string, edges_count
 }

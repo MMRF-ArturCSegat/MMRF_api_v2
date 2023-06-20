@@ -1,4 +1,4 @@
-package sub_graph_optimization
+package instance_generation 
 
 import (
     "os"

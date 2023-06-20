@@ -33,7 +33,7 @@ func get_cable(c * gin.Context){
 
     var obj foc.FiberCable
 
-    cable, err := foc.GetOne(uint(id), obj)
+    cable, err := foc.GetOne(uint32(id), obj)
 
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})

@@ -3,13 +3,13 @@ package fiber_optic_components
 import "fmt"
 
 type FiberSpliceBox struct {
-    Id                      uint        `json:"id"`
+    Id                      uint32        `json:"id"`
     Attenuation             float64     `json:"attenuation"`
     Cost                    float64     `json:"cost"`
 }
 
 
-func (fsb FiberSpliceBox) GetId() uint {
+func (fsb FiberSpliceBox) GetId() uint32 {
     return fsb.Id
 }
 

@@ -10,7 +10,7 @@ type GraphPath struct{
     Cost            float32
 }
 
-func (p * GraphPath) NodeIn(node_id int64) bool {       // self explenaroty why this is usefeul
+func (p * GraphPath) NodeIn(node_id uint32) bool {       // self explenaroty why this is usefeul
     for _, np := range p.Nodes{
         if np.ID == node_id{
             return true
@@ -20,8 +20,8 @@ func (p * GraphPath) NodeIn(node_id int64) bool {       // self explenaroty why 
 }
 
 
-func (p * GraphPath) IdSlice() []int64{                 // mostyle used for debuggin
-    return_slice := make([]int64, 0)
+func (p * GraphPath) IdSlice() []uint32{                 // mostyle used for debuggin
+    return_slice := make([]uint32, 0)
     for _, n := range p.Nodes{
         return_slice = append(return_slice, n.ID)
     }

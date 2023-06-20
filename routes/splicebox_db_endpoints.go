@@ -33,7 +33,7 @@ func get_box(c * gin.Context){
 
     var obj foc.FiberSpliceBox
 
-    box, err := foc.GetOne(uint(id), obj)
+    box, err := foc.GetOne(uint32(id), obj)
 
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})

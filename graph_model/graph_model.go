@@ -8,7 +8,7 @@ import (
 
 // represents a unweighted undirected graph read from a csv
 type CSV_Graph struct{
-    Nodes map[int64]*GraphNode
+    Nodes map[uint32]*GraphNode
 }
 
 
@@ -43,7 +43,7 @@ func (csvg * CSV_Graph) connectNode (node1, node2 *GraphNode){
 }
 
 
-func (csvg * CSV_Graph) FindNode(id int64) (*GraphNode, error){
+func (csvg * CSV_Graph) FindNode(id uint32) (*GraphNode, error){
     node, exists := csvg.Nodes[id]
 
     if !exists{

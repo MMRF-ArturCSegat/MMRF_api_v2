@@ -8,10 +8,10 @@ import (
 
 
 type GraphNode struct {
-    ID		        int64		`json:"id"`
+    ID		        uint32		`json:"id"`
 	Lat		        float64		`json:"lat"`
 	Lng		        float64		`json:"lng"`
-    NeighboursID    []int64     `json:"neighbours"`
+    NeighboursID    []uint32     `json:"neighbours"`
 }
 
 

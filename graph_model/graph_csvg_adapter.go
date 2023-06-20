@@ -1,7 +1,7 @@
 package graph_model
 
 func Slice_of_paths_to_csvg(paths []GraphPath) *CSV_Graph {
-    csv_graph := CSV_Graph{Nodes: make(map[int64]*GraphNode)}
+    csv_graph := CSV_Graph{Nodes: make(map[uint32]*GraphNode)}
     
     for _, path := range paths{
         Inner: 

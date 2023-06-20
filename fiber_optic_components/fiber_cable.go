@@ -4,13 +4,13 @@ import "fmt"
 
 
 type FiberCable struct {
-    Id                  uint        `json:"id"`
+    Id                  uint32        `json:"id"`
     Attenuation         float64     `json:"attenuation"`
     Cost                float64     `json:"cost"`
 }
 
 
-func (fb FiberCable) GetId() uint {
+func (fb FiberCable) GetId() uint32 {
     return fb.Id
 }
 

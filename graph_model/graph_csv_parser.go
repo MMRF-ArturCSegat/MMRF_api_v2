@@ -11,7 +11,7 @@ import (
 
 
 func New_csvg(csv_file multipart.File) (*CSV_Graph, error){
-    csv_graph := CSV_Graph{Nodes: make(map[int64]*GraphNode)}
+    csv_graph := CSV_Graph{Nodes: make(map[uint32]*GraphNode)}
 
     lines, err := csv.NewReader(csv_file).ReadAll()
     if err != nil{
@@ -31,11 +31,11 @@ func New_csvg(csv_file multipart.File) (*CSV_Graph, error){
     }
 
     for _, line := range lines{
-        n1_id, id_err1 :=  strconv.ParseInt(line[start_id], 10, 64)
+        n1_id, id_err1 :=  strconv.ParseUint(line[start_id], 10, 32)
         n1_lat := fix_float(line[start_lat])
         n1_lng := fix_float(line[start_lng])
 
-        n2_id, id_err2 :=  strconv.ParseInt(line[end_id], 10, 64)
+        n2_id, id_err2 :=  strconv.ParseUint(line[end_id], 10, 32)
         n2_lat := fix_float(line[end_lat])
         n2_lng := fix_float(line[end_lng])
 
@@ -44,8 +44,8 @@ func New_csvg(csv_file multipart.File) (*CSV_Graph, error){
             continue
         }
 
-        node1 := GraphNode{ID: n1_id, Lat: n1_lat, Lng: n1_lng}
-        node2 := GraphNode{ID: n2_id, Lat: n2_lat, Lng: n2_lng}
+        node1 := GraphNode{ID: uint32(n1_id), Lat: n1_lat, Lng: n1_lng}
+        node2 := GraphNode{ID: uint32(n2_id), Lat: n2_lat, Lng: n2_lng}
 
         csv_graph.AddEdge(&node1, &node2)
     }
