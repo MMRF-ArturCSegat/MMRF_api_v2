@@ -5,7 +5,7 @@ import (
     "sync"
 )
 
-func (csvg * CSV_Graph) SpreadRadius(start *GraphNode, limit float32, path GraphPath, paths []GraphPath, square util.Square) []GraphPath {
+func (csvg * CSV_Graph) LimitedBranchigFrom(start *GraphNode, limit float32, path GraphPath, paths []GraphPath, square util.Square) []GraphPath {
     path.Append(start)
 
 	r := make(chan []GraphPath, len(start.NeighboursID))      // the channel and the waitgroup grantee the children will send their paths aproproatly
@@ -34,7 +34,7 @@ func (csvg * CSV_Graph) SpreadRadius(start *GraphNode, limit float32, path Graph
 	}
     
     if len(valid_neighbours) == 1{                                                  
-        r <- csvg.SpreadRadius(valid_neighbours[0], limit, path.Copy(), make([]GraphPath, 0), square)
+        r <- csvg.LimitedBranchigFrom(valid_neighbours[0], limit, path.Copy(), make([]GraphPath, 0), square)
     }
     if len(valid_neighbours) > 1 {                                                  // Theses two if's generate the selective threading
                                                                                     // We will only crate a new thread if the node
@@ -42,7 +42,7 @@ func (csvg * CSV_Graph) SpreadRadius(start *GraphNode, limit float32, path Graph
 			go func(node *GraphNode){                                                    // Just keep the same thread computing              
                 defer wg.Done()
 
-                subPaths := csvg.SpreadRadius(node, limit, path.Copy(), make([]GraphPath, 0), square) 
+                subPaths := csvg.LimitedBranchigFrom(node, limit, path.Copy(), make([]GraphPath, 0), square) 
 
                 r <- subPaths 
             }(valid_node)

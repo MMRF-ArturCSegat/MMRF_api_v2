@@ -34,7 +34,7 @@ func SetupRouter() *gin.Engine{
     // graph interaction
     r.POST("/upload_csv/", parse_csv_to_obj)
 	r.GET("/all-nodes/", allNodes)
-    r.POST("/spread-radius/", SpreadRadius)
+    r.POST("/limited-branching/", SpreadRadius)
     r.POST("/closest-node/", ClosestNode)
     r.POST("/txt-sub-graph/", generate_txt)
 
