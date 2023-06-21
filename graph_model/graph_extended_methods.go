@@ -5,7 +5,7 @@ import (
     "sync"
 )
 
-func (csvg * CSV_Graph) LimitedBranchigFrom(start *GraphNode, limit float32, path GraphPath, paths []GraphPath, square util.Square) []GraphPath {
+func (csvg * CSV_Graph) LimitedBranchigFrom(start *GraphNode, limit float32, path GraphPath, paths []GraphPath) []GraphPath {
     path.Append(start)
 
 	r := make(chan []GraphPath, len(start.NeighboursID))      // the channel and the waitgroup grantee the children will send their paths aproproatly
@@ -22,10 +22,6 @@ func (csvg * CSV_Graph) LimitedBranchigFrom(start *GraphNode, limit float32, pat
 
         node_coord := node.GetCoord()
 
-        if !node_coord.IsInSquare(square){   // Validates the node is in the disected square             
-            continue
-        }
-
         if (path.Cost + node_coord.DistanceToInMeters(start.GetCoord())) > limit{// Validates the node is in the disected square             
             continue
         }
@@ -34,7 +30,7 @@ func (csvg * CSV_Graph) LimitedBranchigFrom(start *GraphNode, limit float32, pat
 	}
     
     if len(valid_neighbours) == 1{                                                  
-        r <- csvg.LimitedBranchigFrom(valid_neighbours[0], limit, path.Copy(), make([]GraphPath, 0), square)
+        r <- csvg.LimitedBranchigFrom(valid_neighbours[0], limit, path.Copy(), make([]GraphPath, 0))
     }
     if len(valid_neighbours) > 1 {                                                  // Theses two if's generate the selective threading
                                                                                     // We will only crate a new thread if the node
@@ -42,7 +38,7 @@ func (csvg * CSV_Graph) LimitedBranchigFrom(start *GraphNode, limit float32, pat
 			go func(node *GraphNode){                                                    // Just keep the same thread computing              
                 defer wg.Done()
 
-                subPaths := csvg.LimitedBranchigFrom(node, limit, path.Copy(), make([]GraphPath, 0), square) 
+                subPaths := csvg.LimitedBranchigFrom(node, limit, path.Copy(), make([]GraphPath, 0)) 
 
                 r <- subPaths 
             }(valid_node)

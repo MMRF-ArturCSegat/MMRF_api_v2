@@ -41,7 +41,7 @@ func (c Coord) DistanceToInMeters(other Coord) float32 {
 } 
 
 
-func (co *Coord) IsInSquare(sq Square) bool {
+func (co Coord) IsInSquare(sq Square) bool {
     validLat := co.Lat <= sq.Top.Lat && co.Lat >= sq.Bot.Lat
     validLng := co.Lng >= sq.Top.Lng && co.Lng <= sq.Bot.Lng
 

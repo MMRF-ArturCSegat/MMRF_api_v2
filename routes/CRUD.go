@@ -1,16 +1,27 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/UFSM-Routelib/routelib_api/graph_model"
 	"github.com/UFSM-Routelib/routelib_api/sessions"
+	"github.com/UFSM-Routelib/routelib_api/util"
 	"github.com/gin-gonic/gin"
 )
 
 
 func parse_csv_to_obj(c * gin.Context){
+    limiter_string := c.PostForm("limiter")
+    fmt.Println("limiter: " + limiter_string)
+    var coord_limiter util.Square
+    err := json.Unmarshal([]byte(limiter_string), &coord_limiter)
+    if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"bad coord limiter": err.Error()})
+            return
+    }
+
     file_ptr, file_err := c.FormFile("rede")
     if file_err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": file_err.Error()})
@@ -25,9 +36,10 @@ func parse_csv_to_obj(c * gin.Context){
         return
     }
     
-    csvg, err := graph_model.New_csvg(file)
+    csvg, err := graph_model.New_csvg(file, coord_limiter)
     file.Close()
     if err != nil{
+        println("bad request")
         c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
         println(err.Error())
         return

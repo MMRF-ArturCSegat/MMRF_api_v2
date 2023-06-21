@@ -30,7 +30,6 @@ func SpreadRadius(c * gin.Context){
         Node        gm.GraphNode    `json:"node"`
         Cost        float32         `json:"cost"`
         Limit       float32         `json:"limit"`
-        Square      util.Square     `json:"square"`
     }
    
     var body Body
@@ -55,7 +54,7 @@ func SpreadRadius(c * gin.Context){
         return 
     }
                                 //  this subtracion happens so a inital cost can be taken into account
-    paths := csvg.LimitedBranchigFrom(start, (body.Limit - body.Cost),  gm.GraphPath{Nodes: make([]*gm.GraphNode, 0), Cost: 0}, make([]gm.GraphPath, 0), body.Square)
+    paths := csvg.LimitedBranchigFrom(start, (body.Limit - body.Cost),  gm.GraphPath{Nodes: make([]*gm.GraphNode, 0), Cost: 0}, make([]gm.GraphPath, 0))
 
 	for _, path := range paths{
         fmt.Println(path.IdSlice(), "cost: ", path.Cost)

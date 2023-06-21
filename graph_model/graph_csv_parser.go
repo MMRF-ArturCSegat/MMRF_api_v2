@@ -2,23 +2,29 @@ package graph_model
 
 import (
 	"encoding/csv"
-	"errors"
 	"mime/multipart"
 	"strconv"
 	"strings"
+    "github.com/icholy/utm"
 	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
 
-func New_csvg(csv_file multipart.File) (*CSV_Graph, error){
+func New_csvg(csv_file multipart.File, coord_limiter util.Square) (*CSV_Graph, error){
     csv_graph := CSV_Graph{Nodes: make(map[uint32]*GraphNode)}
 
-    lines, err := csv.NewReader(csv_file).ReadAll()
+    reader := csv.NewReader(csv_file)
+    reader.FieldsPerRecord = -1 
+    reader.LazyQuotes = true
+    reader.Comma = '\t'
+
+    lines, err := reader.ReadAll()
     if err != nil{
-        return nil, errors.New("Failed to read bad csv file")
+        return nil, err
     }
 
     // define the column name indexes  
+// SUBESTACAO	ALIMENTADOR	FISICO_FONTE	FONTEX	FONTEY	FISICO_NO	NOX	NOY	NIVEL	TIPO_UNIDADE	I_ADM	USEC	TELECOMANDADA	MANOBRA_ANEL	ABERTURA_CARGA	LOAD_BUSTER	PROTECAO	FUSE	UREG	ENDERECO	U_REF	UR	UX	UCAP	Q_NOM	UTRD	PROPRIETARIO	S_NOM	UTRF	ESTADO	ESTADO_NORMAL	FASES	QTDFASES	BIT_FAS	MAT_FAS	COMPRIMENTO	BLOCO	R1	X1	R0	X0
     start_id, err1 := util.IndexOf("FISICO_FONTE", lines[0])
     start_lat, err2 := util.IndexOf("FONTEX", lines[0])
     start_lng, err3 := util.IndexOf("FONTEY", lines[0])
@@ -26,30 +32,53 @@ func New_csvg(csv_file multipart.File) (*CSV_Graph, error){
     end_lat, err5 := util.IndexOf("NOX", lines[0])
     end_lng, err6 := util.IndexOf("NOY", lines[0])
 
-    if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil || err6 != nil{
-        return nil, errors.New("csv files has bad column names")
+    errs := []error{err1, err2, err3, err4, err5, err6}
+    for _, e := range errs {
+        if e != nil {
+            return nil, e
+        }
     }
+
+    zone, _ := utm.ParseZone("22J")
 
     for _, line := range lines{
         n1_id, id_err1 :=  strconv.ParseUint(line[start_id], 10, 32)
-        n1_lat := fix_float(line[start_lat])
-        n1_lng := fix_float(line[start_lng])
+        n1_x := fix_float(line[start_lat])
+        n1_y := fix_float(line[start_lng])
 
         n2_id, id_err2 :=  strconv.ParseUint(line[end_id], 10, 32)
-        n2_lat := fix_float(line[end_lat])
-        n2_lng := fix_float(line[end_lng])
+        n2_x := fix_float(line[end_lat])
+        n2_y := fix_float(line[end_lng])
 
         if id_err1 != nil || id_err2 != nil {
             // invalid id, probably bad node
             continue
         }
 
+        n1_lat, n1_lng := zone.ToLatLon(n1_x, n1_y)
+        n2_lat, n2_lng := zone.ToLatLon(n2_x, n2_y)
+
         node1 := GraphNode{ID: uint32(n1_id), Lat: n1_lat, Lng: n1_lng}
         node2 := GraphNode{ID: uint32(n2_id), Lat: n2_lat, Lng: n2_lng}
+    
+        if !node1.GetCoord().IsInSquare(coord_limiter) && node2.GetCoord().IsInSquare(coord_limiter) {
+            // onnly 1 is invalid o add 2
+            csv_graph.AddNode(&node2)
+            continue
+        }
+        
+        if !node2.GetCoord().IsInSquare(coord_limiter) && node1.GetCoord().IsInSquare(coord_limiter) {
+            csv_graph.AddNode(&node1)
+            continue
+        }
+        
+        if !node2.GetCoord().IsInSquare(coord_limiter) && !node1.GetCoord().IsInSquare(coord_limiter) {
+            continue
+        }
 
         csv_graph.AddEdge(&node1, &node2)
     }
-    return &csv_graph, err
+    return &csv_graph, nil 
 }
 
 // weird function to ignore errors less verbousely

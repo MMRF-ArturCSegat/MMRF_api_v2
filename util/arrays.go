@@ -1,6 +1,9 @@
 package util
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 func In[T comparable](e T, list []T) bool{
     for _, item := range list{
@@ -36,7 +39,7 @@ func IndexOf[T comparable](thing T, array []T) (int, error){
             return index, nil
         }
     }
-    return -1, errors.New("item not in array")
+    return -1, errors.New(fmt.Sprintf("could not find %v in slice %q", thing, array))
 }
 
 
