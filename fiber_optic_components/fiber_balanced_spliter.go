@@ -6,8 +6,8 @@ import "fmt"
 type FiberBalancedSpliter struct{
     Id                      uint32        `json:"id"`
     Cost                    float64     `json:"cost"`
-    Loss_ratio              float64     `json:"loss1"`
-    Split_ratio             float64     `json:"loss2"`
+    Loss_ratio              float64     `json:"loss"`
+    Split_ratio             float64     `json:"split"`
 }
 
 
