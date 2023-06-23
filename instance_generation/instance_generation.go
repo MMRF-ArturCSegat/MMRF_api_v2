@@ -9,43 +9,40 @@ import (
 )
 
 
-func GenerateSubGraphOptimizationFile(sub_graphs []*gm.CSV_Graph, clients []util.Coord, entrys, cable_IDs, splicebox_IDs, uspliter_IDs, bspliter_IDs []uint32) (*os.File, error){
+func GenerateSubGraphOptimizationFile(csvg *gm.CSV_Graph,sub_graphs []*gm.CSV_Graph, clients []util.Coord, entrys, cable_IDs, splicebox_IDs, uspliter_IDs, bspliter_IDs []uint32) (*os.File, error){
     // in theory, entys should be aligned to sub_graphs
     // so the 0th entry is the root that generated the 0th sub_graph
-
-    file_content := fmt.Sprintf("Clients %v\n", len(clients))
-        
-    // adding all nodes and edges
-    read_nodes := make(map[uint32]bool)
-    read_nodes_edges := make(map[uint32]bool)
     nodes_content := ""
     edges_content := ""
     edges_count := 0
-    for _, sb := range sub_graphs {
-        graph_content, _ := sb.String_from_all_nodes(read_nodes)
-        nodes_content += graph_content
-
-        graph_content_edges, count := sb.String_from_all_edges(read_nodes_edges)
-        edges_count += count
-        edges_content += graph_content_edges
+    nodes_count := 0
+    nodes := csvg.AllNodes()
+    for _, node := range nodes{
+        nodes_content += node.String() + "\n"
+        nodes_count++
+        for _, neighbour_id := range node.NeighboursID{
+            edges_content += fmt.Sprintf("%v\t%v\n", node.ID, neighbour_id)
+            edges_count++
+        }
     }
-    file_content += fmt.Sprintf("Nodes %v\n", (len(read_nodes) + len(clients) + 1)) // weird adding:
-    file_content += "OLT\tOLT\tOLT\n" // temporary                                  // the nodes category includes the nodes + clients + the OLT
-    file_content += nodes_content
     for index, client := range clients { // clients will be added as nodes
-        file_content += fmt.Sprintf("0%v\t%v\t%v\n", index, client.Lat, client.Lng)
+        nodes_content += fmt.Sprintf("0%v\t%v\t%v\n", index, client.Lat, client.Lng)
+        nodes_count++
     }
-    file_content += fmt.Sprintf("Edges %v\n", edges_count)
-    file_content += edges_content
-
-    // adding virtual edges, optimization of the combinatory algo
-    // TODO: add proper reference 
 
     for index, sb := range sub_graphs{
         for _, node := range sb.AllNodes(){
-            file_content += fmt.Sprintf("%v\t%v\tvirtual\n", entrys[index], node.ID)
+            edges_content += fmt.Sprintf("%v\t%v\tvirtual\n", entrys[index], node.ID)
+            edges_count++
         }
     }
+
+    file_content := fmt.Sprintf("Clients %v\n", len(clients))
+    file_content += fmt.Sprintf("Nodes %v\n", nodes_count + 1) // + 1 necesseary for OLT
+    file_content += "OLT\tOLT\tOLT\n" // temporary                                  
+    file_content += nodes_content
+    file_content += fmt.Sprintf("Edges %v\n", edges_count)
+    file_content += edges_content
 
     // adding all fiber components
     file_content += "Cable " + fmt.Sprint(len(cable_IDs)) + "\n"

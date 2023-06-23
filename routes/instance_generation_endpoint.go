@@ -34,16 +34,16 @@ func generate_txt(c * gin.Context){
         c.JSON(http.StatusUnauthorized, gin.H{"error": "no valid session"})
         return 
     }
-    if _, err := sessions.GetServerCookie(cookie_string); err != nil{
-        c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
-        return 
+    csvg, csvg_err := sessions.GetCSVG(cookie_string)
+    if cookie_err != nil || csvg_err !=  nil{
+        c.JSON(http.StatusUnauthorized, gin.H{"error": "no valid session"})
     }
     
     var paths []*gm.CSV_Graph
     for _, path := range body.Paths{
         paths = append(paths, gm.Slice_of_paths_to_csvg(path))
     }
-    file, file_err := ig.GenerateSubGraphOptimizationFile(paths, body.Clients, body.Entrys, body.Cables, body.Spliceboxes, body.Uspliters, body.Bspliters)
+    file, file_err := ig.GenerateSubGraphOptimizationFile(csvg, paths, body.Clients, body.Entrys, body.Cables, body.Spliceboxes, body.Uspliters, body.Bspliters)
     if file_err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": file_err.Error()})
         return
