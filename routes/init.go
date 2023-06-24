@@ -30,6 +30,8 @@ func SetupRouter() *gin.Engine{
         c.Next()
     })
     r.GET("/", home)
+    r.GET("/has-session/", has_session)
+    r.GET("/delete-session/", delete_session)
 
     // graph interaction
     r.POST("/upload_csv/", parse_csv_to_obj)

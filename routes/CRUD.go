@@ -59,7 +59,7 @@ func parse_csv_to_obj(c * gin.Context){
         // https://pkg.go.dev/net/http#Cookie  AND https://github.com/gin-gonic/gin/blob/v1.9.0/context.go#L887
         // you may see i am not the most expireienced with cookie auth in gin
         c.SetCookie("session_id", cookie.ID, 0, "", "", false, false)
-        c.JSON(http.StatusOK, gin.H{"message_string": "session created"})
+        c.JSON(http.StatusOK, gin.H{"drawablePaths": csvg.Csvg_to_slice_of_coord_paths()})
         sessions.PrintSessions()
         return
     }
@@ -68,4 +68,24 @@ func parse_csv_to_obj(c * gin.Context){
     c.JSON(http.StatusUnauthorized, gin.H{"error": "You already have a session created, delete it do create a new one"})
 }
 
+func has_session(c * gin.Context){
+    cookie_string, err := c.Cookie("session_id")
+    fmt.Println("searhing for " + cookie_string + "in cookie, jar")
+    cookie, cookie_err := sessions.GetServerCookie(cookie_string)
+    if err != nil || cookie_err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"session": "no session"})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"session": cookie})
+}
 
+
+func delete_session(c * gin.Context){
+    cookie_string, err := c.Cookie("session_id")
+    cookie_err := sessions.RemoveSession(cookie_string)
+    if err != nil || cookie_err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"session": "no session to delete"})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"session": "deleted session" + cookie_string})
+}
