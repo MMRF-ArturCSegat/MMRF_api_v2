@@ -89,3 +89,15 @@ func delete_session(c * gin.Context){
     }
     c.JSON(http.StatusOK, gin.H{"session": "deleted session" + cookie_string})
 }
+
+
+func generate_drawable_paths(c * gin.Context){
+    cookie_string, err := c.Cookie("session_id")
+    _, cookie_err := sessions.GetServerCookie(cookie_string)
+    csvg, csvg_err := sessions.GetCSVG(cookie_string)
+    if err != nil || cookie_err != nil || csvg_err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"session": "invalid cookie or expired session"})
+        return
+    }
+    c.JSON(http.StatusOK, gin.H{"drawablePaths": csvg.Csvg_to_slice_of_coord_paths()})
+}

@@ -39,6 +39,7 @@ func SetupRouter() *gin.Engine{
     r.POST("/limited-branching/", SpreadRadius)
     r.POST("/closest-node/", ClosestNode)
     r.POST("/txt-sub-graph/", generate_txt)
+    r.GET("/drawable-paths/", generate_drawable_paths)
 
     // fiber optic component storage
     r.GET("/get-all-cables/", all_cables)
