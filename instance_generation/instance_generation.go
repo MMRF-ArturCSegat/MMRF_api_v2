@@ -1,15 +1,17 @@
 package instance_generation
 
 import (
+	"errors"
 	"fmt"
 	"os"
+
 	foc "github.com/UFSM-Routelib/routelib_api/fiber_optic_components"
 	gm "github.com/UFSM-Routelib/routelib_api/graph_model"
 	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
 
-func GenerateSubGraphOptimizationFile(csvg *gm.CSV_Graph,sub_graphs []*gm.CSV_Graph, clients []util.Coord, entrys, cable_IDs, splicebox_IDs, uspliter_IDs, bspliter_IDs []uint32) (*os.File, error){
+func GenerateSubGraphOptimizationFile(csvg *gm.CSV_Graph,sub_graphs []*gm.CSV_Graph, OLT util.Coord, clients []util.Coord, cable_IDs, splicebox_IDs, uspliter_IDs, bspliter_IDs []uint32) (*os.File, error){
     // in theory, entys should be aligned to sub_graphs
     // so the 0th entry is the root that generated the 0th sub_graph
     nodes_content := ""
@@ -25,6 +27,11 @@ func GenerateSubGraphOptimizationFile(csvg *gm.CSV_Graph,sub_graphs []*gm.CSV_Gr
             edges_count++
         }
     }
+    
+    if len(clients) != len(sub_graphs){
+        return nil, errors.New("invalid sub_graphs or invalid clients")
+    }
+
     for index, client := range clients { // clients will be added as nodes
         nodes_content += fmt.Sprintf("0%v\t%v\t%v\n", index, client.Lat, client.Lng)
         nodes_count++
@@ -32,14 +39,14 @@ func GenerateSubGraphOptimizationFile(csvg *gm.CSV_Graph,sub_graphs []*gm.CSV_Gr
 
     for index, sb := range sub_graphs{
         for _, node := range sb.AllNodes(){
-            edges_content += fmt.Sprintf("%v\t%v\tvirtual\n", entrys[index], node.ID)
+            edges_content += fmt.Sprintf("0%v\t%v\tvirtual\n", index, node.ID)
             edges_count++
         }
     }
 
     file_content := fmt.Sprintf("Clients %v\n", len(clients))
     file_content += fmt.Sprintf("Nodes %v\n", nodes_count + 1) // + 1 necesseary for OLT
-    file_content += "OLT\tOLT\tOLT\n" // temporary                                  
+    file_content += fmt.Sprintf("OLT \t%v\t%v\n", OLT.Lat, OLT.Lng)
     file_content += nodes_content
     file_content += fmt.Sprintf("Edges %v\n", edges_count)
     file_content += edges_content

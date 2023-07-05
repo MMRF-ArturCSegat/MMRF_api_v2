@@ -39,7 +39,7 @@ func New_csvg(csv_file multipart.File, coord_limiter util.Square) (*CSV_Graph, e
         }
     }
 
-    zone, _ := utm.ParseZone("22J")
+    zone := utm.LatLonZone(coord_limiter.Bot.Lat, coord_limiter.Top.Lng)
 
     for _, line := range lines{
         n1_id, id_err1 :=  strconv.ParseUint(line[start_id], 10, 32)
