@@ -19,13 +19,13 @@ func GetAll[T db_obj](objs []T) ([]T, error){
 }
 
 
-func GetOne(id uint32, obj db_obj) (db_obj, error){
-    res := db.Find(&obj, id)
+func GetOne[T db_obj](id uint32, obj *T) (error){
+    res := db.Find(obj, id)
 
 	if res.RowsAffected == 0 || res.Error != nil {
-		return nil, errors.New("Not in database")
+		return errors.New("Not in database")
 	} 
-    return obj, nil
+    return nil
 }
 
 

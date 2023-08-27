@@ -10,7 +10,6 @@ import (
 	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
-
 func GenerateSubGraphOptimizationFile(csvg *gm.CSV_Graph,sub_graphs []*gm.CSV_Graph, OLT util.Coord, clients []util.Coord, cable_IDs, splicebox_IDs, uspliter_IDs, bspliter_IDs []uint32) (*os.File, error){
     // in theory, entys should be aligned to sub_graphs
     // so the 0th entry is the root that generated the 0th sub_graph
@@ -98,4 +97,3 @@ func GenerateSubGraphOptimizationFile(csvg *gm.CSV_Graph,sub_graphs []*gm.CSV_Gr
     }
     return file, nil
 }
-

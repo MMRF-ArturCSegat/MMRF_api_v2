@@ -31,9 +31,9 @@ func get_cable(c * gin.Context){
     id_string := c.Param("id")
     id, _ := strconv.ParseUint(id_string, 10, 32)
 
-    var obj foc.FiberCable
+    var cable foc.FiberCable
 
-    cable, err := foc.GetOne(uint32(id), obj)
+    err := foc.GetOne(uint32(id), &cable)
 
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})

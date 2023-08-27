@@ -4,26 +4,14 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-
-	gm "github.com/UFSM-Routelib/routelib_api/graph_model"
-	"github.com/UFSM-Routelib/routelib_api/sessions"
-	ig "github.com/UFSM-Routelib/routelib_api/instance_generation"
-	"github.com/UFSM-Routelib/routelib_api/util"
 	"github.com/gin-gonic/gin"
+	ig"github.com/UFSM-Routelib/routelib_api/instance_generation"
+	"github.com/UFSM-Routelib/routelib_api/sessions"
 )
 
 func generate_txt(c * gin.Context){
-    type Body struct {
-        Paths          [][]gm.GraphPath     `json:"paths"`
-        Clients        []util.Coord         `json:"clients"`
-        OLT            util.Coord           `json:"olt"`
-        Cables         []uint32             `json:"cables"`
-        Spliceboxes    []uint32             `json:"boxes"`
-        Uspliters      []uint32             `json:"uspliters"`
-        Bspliters      []uint32             `json:"bspliters"`
-    }
 
-    var body Body
+    var body ig.Instance
 	if err := c.ShouldBindJSON(&body); err != nil{
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
 		return
@@ -39,11 +27,7 @@ func generate_txt(c * gin.Context){
         c.JSON(http.StatusUnauthorized, gin.H{"error": "no valid session"})
     }
     
-    var paths []*gm.CSV_Graph
-    for _, path := range body.Paths{
-        paths = append(paths, gm.Slice_of_paths_to_csvg(path))
-    }
-    file, file_err := ig.GenerateSubGraphOptimizationFile(csvg, paths, body.OLT, body.Clients, body.Cables, body.Spliceboxes, body.Uspliters, body.Bspliters)
+    file, file_err := body.GenerateSubGraphOptimizationFile(csvg)
     if file_err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": file_err.Error()})
         return
@@ -53,11 +37,6 @@ func generate_txt(c * gin.Context){
     c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", "sub_graph.txt"))
     c.Header("Content-Type", "text/plain")
     c.Header("Content-Description", "File Transfer")
-    c.File("/home/arturcs/Documents/routelib_api/sub_graph.txt")
-    os.Remove("/home/arturcs/Documents/routelib_api/sub_graph.txt")
+    c.File("/home/arturcs/Documents/Routelib/routelib_api/sub_graph.txt")
+    os.Remove("/home/arturcs/Documents/Routelib/routelib_api/sub_graph.txt")
 }
-
-
-
-
-

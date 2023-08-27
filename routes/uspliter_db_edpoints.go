@@ -30,9 +30,9 @@ func get_u_spliter(c * gin.Context){
     id_string := c.Param("id")
     id, _ := strconv.ParseUint(id_string, 10, 32)
 
-    var obj foc.FiberUnbalancedSpliter
+    var uspliter foc.FiberUnbalancedSpliter
 
-    uspliter, err := foc.GetOne(uint32(id), obj)
+    err := foc.GetOne(uint32(id), &uspliter)
 
     if err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error":err.Error()})
