@@ -39,7 +39,7 @@ func IndexOf[T comparable](thing T, array []T) (int, error){
             return index, nil
         }
     }
-    return -1, errors.New(fmt.Sprintf("could not find %v in slice %q", thing, array))
+    return -1, errors.New(fmt.Sprintf("could not find %v in slice %v", thing, array))
 }
 
 

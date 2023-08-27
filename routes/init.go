@@ -2,8 +2,8 @@ package routes
 
 import (
 	"net/http"
-	// "github.com/gin-gonic/contrib/cors"
 	"github.com/gin-gonic/gin"
+
 )
 
 

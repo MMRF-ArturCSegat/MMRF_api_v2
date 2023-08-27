@@ -18,6 +18,8 @@ func New_csvg(csv_file multipart.File, coord_limiter util.Square) (*CSV_Graph, e
     reader.LazyQuotes = true
     reader.Comma = '\t'
 
+    // for some reason, reading the whole file at once runs faster then reading the lines individually
+    // bench marked
     lines, err := reader.ReadAll()
     if err != nil{
         return nil, err
