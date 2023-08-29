@@ -1,6 +1,8 @@
 package graph_model
 
-import "github.com/UFSM-Routelib/routelib_api/util"
+import (
+	"github.com/UFSM-Routelib/routelib_api/util"
+)
 
 func Slice_of_paths_to_csvg(paths []GraphPath) *CSV_Graph {
     csv_graph := CSV_Graph{Nodes: make(map[uint32]*GraphNode)}
@@ -34,3 +36,4 @@ func (csvg * CSV_Graph) Csvg_to_slice_of_coord_paths() [][]util.Coord{
     }
     return paths
 }
+

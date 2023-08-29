@@ -1,8 +1,8 @@
 package graph_model
 
 import (
-    "github.com/UFSM-Routelib/routelib_api/util"
-    "sync"
+	"sync"
+	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
 func (csvg * CSV_Graph) LimitedBranchigFrom(start *GraphNode, limit float32, path GraphPath, paths []GraphPath) []GraphPath {
@@ -119,3 +119,4 @@ func (csvg * CSV_Graph) AllNodes() []*GraphNode{
     }
     return nodes
 }
+

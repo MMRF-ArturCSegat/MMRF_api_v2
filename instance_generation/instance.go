@@ -15,10 +15,10 @@ type Instance struct {
     Paths               [][]gm.GraphPath     `json:"paths"`
     Clients             []util.Coord         `json:"clients"`
     OLT                 util.Coord           `json:"olt"`
-    Cables_id           []uint32             `json:"cables"`
-    Spliceboxes_id      []uint32             `json:"boxes"`
-    Uspliters_id        []uint32             `json:"uspliters"`
-    Bspliters_id        []uint32             `json:"bspliters"`
+    Cable_id            uint32               `json:"Cable_id"`
+    Splicebox_id        uint32               `json:"Splicebox_id"`
+    Uspliters_id        []uint32             `json:"Uspliters_id"`
+    Bspliters_id        []uint32             `json:"Bspliters_id"`
 }
 
 func (i Instance) GetUspliters() []foc.FiberUnbalancedSpliter {
@@ -41,25 +41,15 @@ func (i Instance) GetBspliters() []foc.FiberBalancedSpliter {
     }
     return bspliters
 }
-func (i Instance) GetCables () []foc.FiberCable {
-    cables := make([]foc.FiberCable, len(i.Cables_id))
-    for idx, id := range i.Cables_id {
-        err := foc.GetOne(id, &cables[idx])
-        if err != nil{
-            continue;
-        }
-    }
-    return cables 
+func (i Instance) GetCable () *foc.FiberCable {
+    cable := &foc.FiberCable{}
+    foc.GetOne(i.Cable_id, cable)
+    return cable
 }
-func (i Instance) GetSpliceBoxes () []foc.FiberSpliceBox {
-    boxes := make([]foc.FiberSpliceBox, len(i.Spliceboxes_id))
-    for idx, id := range i.Spliceboxes_id {
-        err := foc.GetOne(id, &boxes[idx])
-        if err != nil{
-            continue;
-        }
-    }
-    return boxes 
+func (i Instance) GetSpliceBox () *foc.FiberSpliceBox {
+    box := &foc.FiberSpliceBox{}
+    foc.GetOne(i.Splicebox_id, box)
+    return box
 }
 
 func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.File, error){
@@ -109,16 +99,6 @@ func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.Fil
     file_content += edges_content
 
     // adding all fiber components
-    file_content += "Cable " + fmt.Sprint(len(i.Cables_id)) + "\n"
-    for _, cable := range i.GetCables() { 
-        file_content += cable.String()
-    }
-
-    file_content += "SpliceBox " + fmt.Sprint(len(i.Spliceboxes_id)) + "\n"
-    for _, box := range i.GetSpliceBoxes() { 
-        file_content += box.String()
-    }
-
     file_content += "UnbalancedSpliter " + fmt.Sprint(len(i.Uspliters_id)) + "\n"
     for _, uspliter := range i.GetUspliters() { 
         file_content += uspliter.String()
@@ -128,6 +108,12 @@ func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.Fil
     for _, bspliter := range i.GetBspliters() { 
         file_content += bspliter.String()
     }
+
+    file_content += "Cable " + "\n"
+    file_content += i.GetCable().String()
+
+    file_content += "SpliceBox " + "\n"
+    file_content += i.GetSpliceBox().String()
 
     file, err := os.Create("sub_graph.txt")
     if err != nil {

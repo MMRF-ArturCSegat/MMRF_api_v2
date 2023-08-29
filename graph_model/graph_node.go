@@ -2,7 +2,6 @@ package graph_model
 
 import (
 	"fmt"
-
 	"github.com/UFSM-Routelib/routelib_api/util"
 )
 

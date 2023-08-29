@@ -4,12 +4,12 @@ import "errors"
 
 // interface for all fibre optic components to implement as
 // they have very similar querys
-type db_obj interface {
+type FiberComponent interface {
     GetId() uint32
     String() string
 }
 
-func GetAll[T db_obj](objs []T) ([]T, error){
+func GetAll[T FiberComponent](objs []T) ([]T, error){
     res := db.Find(&objs)
 
     if res.Error != nil{
@@ -19,7 +19,7 @@ func GetAll[T db_obj](objs []T) ([]T, error){
 }
 
 
-func GetOne[T db_obj](id uint32, obj *T) (error){
+func GetOne[T FiberComponent](id uint32, obj *T) (error){
     res := db.Find(obj, id)
 
 	if res.RowsAffected == 0 || res.Error != nil {
@@ -29,7 +29,7 @@ func GetOne[T db_obj](id uint32, obj *T) (error){
 }
 
 
-func AddObj[T db_obj](obj *T) error {
+func AddObj[T FiberComponent](obj *T) error {
     res := db.Create(&obj)
 
     if res.RowsAffected == 0 {
