@@ -2,6 +2,7 @@ package graph_model
 
 import (
 	"sync"
+
 	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
@@ -62,51 +63,48 @@ func (csvg * CSV_Graph) LimitedBranchigFrom(start *GraphNode, limit float32, pat
 
 func (csvg * CSV_Graph) ClosestNode(co util.Coord) (*GraphNode, float32){
     type result struct{     // type for distance calulation
-        node *GraphNode
-        dist float32
+        node    *GraphNode
+        dist    float32
+        mut     *sync.Mutex
     }
 
     // worker function to calculate a section of the array
-    computer := func(from, to int, arr []*GraphNode, results chan result, wg * sync.WaitGroup){
+    computer := func(from, to int, arr []*GraphNode, best_global *result, wg * sync.WaitGroup){
         defer wg.Done()
         best_node := arr[0]
         best_dist := best_node.GetCoord().DistanceToInMeters(co)
-        for from < to {
-            if c := arr[from].GetCoord(); c.DistanceToInMeters(co) < best_dist || best_dist == 0{
-                best_dist = c.DistanceToInMeters(co)
-                best_node = arr[from]
+
+        for _, node := range arr[from:to] {
+            if d := node.GetCoord().DistanceToInMeters(co); d < best_dist || best_dist == 0 {
+                best_dist = d
+                best_node = node
             }
-            from += 1
         }
-        result := result{node: best_node, dist: best_dist}
-        results <- result
+        
+        best_global.mut.Lock()
+        if best_dist < best_global.dist {
+            best_global.node = best_node
+            best_global.dist = best_dist
+        }
+        best_global.mut.Unlock()
     }
 
     nodes := csvg.AllNodes()
-    results :=  make(chan result, 10)
     wg := new(sync.WaitGroup)
+    best_result := result{node: nodes[0], dist: nodes[0].GetCoord().DistanceToInMeters(co), mut: new(sync.Mutex)}
 
+    // weird foor loop call the worker for each 10% of the nodes slice
 	step_c := len(nodes)/10
 	step_0 := 0
 	step := step_c
     for i := 0; i<10; i++{
         println("s0", step_0, "sp", step)
-        go computer(step_0, step, nodes, results, wg)
-        step_0 += step_c        // weird foor loop call the worker for each 10% of the nodes slice
+        go computer(step_0, step, nodes, &best_result, wg)
+        step_0 += step_c        
         step += step_c
         wg.Add(1)
     }
-
     wg.Wait()
-    close(results)
-
-    best_result := <- results
-
-    for result := range results {           // collection and calulation
-        if result.dist < best_result.dist{
-            best_result = result
-        }
-    }
 
     return best_result.node, best_result.dist   // unmounting of best result for no type conflicts
 }
