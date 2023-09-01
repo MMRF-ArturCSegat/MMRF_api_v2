@@ -58,7 +58,7 @@ func (i Instance) OltNecessaryColetions(csvg *gm.CSV_Graph) []uint32 {
     connections := make([]uint32 ,0)
     invalid_nodes := make([]*gm.GraphNode, len(csvg.Nodes)/2)
     validate_node := func (node *gm.GraphNode, reference util.Coord, dist float32) bool {
-        if node.GetCoord().DistanceToInMeters(reference) < dist && !util.In(node, invalid_nodes){
+        if node.GetCoord().DistanceToInMeters(reference) < dist && !util.In(node, invalid_nodes) && len(node.NeighboursID) == 0 {
             return true
         }
         return false
@@ -84,9 +84,11 @@ func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.Fil
     nodes_count := 0
     nodes := csvg.AllNodes()
     for _, node := range nodes{
+        if len(node.NeighboursID) == 0 {continue}
         nodes_content += node.String() + "\n"
         nodes_count++
         for _, neighbour_id := range node.NeighboursID{
+            node, _ := csvg.FindNode(neighbour_id)
             edges_content += fmt.Sprintf("%v\t%v\n", node.ID, neighbour_id)
             edges_count++
         }
