@@ -3,7 +3,7 @@ package graph_model
 import (
 	"fmt"
 	"testing"
-
+	"github.com/UFSM-Routelib/routelib_api/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,6 +15,7 @@ func newNode(id uint32, lat, lng float64) *GraphNode {
         NeighboursID: make([]uint32, 0),
     }
 }
+
 
 func setup() *CSV_Graph {
     c := &CSV_Graph{Nodes: make(map[uint32]*GraphNode)}
@@ -45,7 +46,7 @@ func TestAllVisitableNodes(t * testing.T) {
         t.Errorf("exepcted %v, got %v", []*GraphNode{n1, n2, n4, n3, n5}, av)
         return
     }
-    println("Passed AllVisitableNodes")
+    fmt.Println("Passed AllVisitableNodes")
 }
 
 
@@ -76,5 +77,86 @@ func TestDFS(t * testing.T) {
         t.Errorf("1 -> 6: expected %v, got %v", expect, dfs)
         return
     }
-    println("Passed DFS")
+    fmt.Println("Passed DFS")
 }   
+
+func TestCloestNode(t * testing.T) {
+    c := setup()
+
+    for i := 1; i <= 10; i++ {    
+        c.AddNode(newNode(uint32(i), float64(i), float64(i)))
+    }
+
+    n1, _ := c.FindNode(1)
+    
+    expected_node := n1
+    expected_dist := n1.GetCoord().DistanceToInMeters(util.NewCoord(1.2, 1.2))
+
+    node, dist := c.ClosestNode(util.NewCoord(1.2, 1.2))
+
+    if node != expected_node || dist != expected_dist {
+        t.Errorf("Bad distance or node from coordinate {1.2, 1.2}: expected node %v with distance %v, got node %v and distance %v", 
+            expected_node, expected_dist, node, dist)
+            return
+    }
+    fmt.Println("Passed ClosestNode")
+}
+
+
+func TestCloestNodeFunc(t * testing.T) {
+    c := setup()
+
+    for i := 1; i <= 10; i++ {    
+        c.AddNode(newNode(uint32(i), float64(i), float64(i)))
+    }
+
+    n1, _ := c.FindNode(1)
+    
+    expected_node := n1
+    expected_dist := n1.GetCoord().DistanceToInMeters(util.NewCoord(1.2, 1.2))
+    
+    filter1 := func (node *GraphNode, reference util.Coord, dist float32)bool {
+        if node.GetCoord().DistanceToInMeters(reference) < dist {
+            return true
+        }
+        return false
+    }
+
+    node, dist, err := c.ClosestNodeFunc(util.NewCoord(1.2, 1.2), filter1)
+
+    if err != nil {
+        t.Errorf("error happend with coordinate {1.2, 1,2} filter 1: %v", err.Error())
+        return
+    }
+
+    if node != expected_node || dist != expected_dist {
+        t.Errorf("Bad distance or node from coordinate {1.2, 1.2} filter 1: expected node %v with distance %v, got node %v and distance %v", 
+            expected_node, expected_dist, node, dist)
+            return
+    }
+
+
+    filter2 := func (node *GraphNode, reference util.Coord, dist float32)bool {
+        if node.GetCoord().DistanceToInMeters(reference) < dist && node.ID > 10{
+            return true
+        }
+        return false
+    }
+
+    node, dist, err = c.ClosestNodeFunc(util.NewCoord(1.2, 1.2), filter2)
+        
+    expected_node = nil
+    expected_dist = 0.0
+
+    if err == nil {
+        t.Errorf("The function should error like :'No node passed your defined filter' but it showed no error; Problem on filter 2")
+        return
+    }
+
+    if node != expected_node || dist != expected_dist {
+        t.Errorf("Bad distance or node from coordinate {1.2, 1.2} filter 2: expected node %v with distance %v, got node %v and distance %v", 
+            expected_node, expected_dist, node, dist)
+            return
+    }
+    fmt.Println("Passed ClosestNodeFunc")
+}

@@ -54,23 +54,28 @@ func (i Instance) GetSpliceBox () *foc.FiberSpliceBox {
 
 // all that nodes the need to be connected to the OLT
 // in order for it to have connections with all sub-graphs in the CSV_Graph
-// func (i Instance) OltNecessaryColetions(csvg gm.CSV_Graph) []uint32 {
-//     connections := make([]uint32 ,0)
-//     invalid_nodes := make([]uint32, len(csvg.Nodes)/2)
-//
-//     validate_node := func (node gm.GraphNode, reference util.Coord, dist float32) bool {
-//         if node.GetCoord().DistanceToInMeters(reference) < dist && !util.In(node.ID, invalid_nodes){
-//             return true
-//         }
-//         return false
-//     }
-//     
-//     short, _ := csvg.ClosestNode(i.OLT)
-//
-//     
-//     
-//     
-// }
+func (i Instance) OltNecessaryColetions(csvg *gm.CSV_Graph) []uint32 {
+    connections := make([]uint32 ,0)
+    invalid_nodes := make([]*gm.GraphNode, len(csvg.Nodes)/2)
+    validate_node := func (node *gm.GraphNode, reference util.Coord, dist float32) bool {
+        if node.GetCoord().DistanceToInMeters(reference) < dist && !util.In(node, invalid_nodes){
+            return true
+        }
+        return false
+    }
+
+    for {
+        short, _, err := csvg.ClosestNodeFunc(i.OLT, validate_node)
+        if err != nil {
+            // err will be not nill when the file "validate_node" is strict enough that no nodes in csvg pass it
+            break
+        }
+        connections = append(connections, short.ID)
+        invalid_nodes = append(invalid_nodes, csvg.AllVisitableNodesFrom(short, make([]*gm.GraphNode, 0))...)
+    }
+        
+    return connections
+}
 
 func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.File, error){
     nodes_content := ""
@@ -116,6 +121,9 @@ func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.Fil
     file_content += fmt.Sprintf("OLT \t%v\t%v\n", i.OLT.Lat, i.OLT.Lng)
     file_content += nodes_content
     file_content += fmt.Sprintf("Edges %v\n", edges_count)
+    for _, e := range i.OltNecessaryColetions(csvg) {
+        file_content += fmt.Sprintf("OLT\t%v\n", e)
+    }
     file_content += edges_content
 
     // adding all fiber components
