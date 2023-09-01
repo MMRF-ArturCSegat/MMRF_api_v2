@@ -37,6 +37,19 @@ func (p * GraphPath) Append(n *GraphNode){
     p.Nodes = append(p.Nodes, n)
 }
 
+func (p * GraphPath) Pop() {                   
+    if len(p.Nodes) == 0 {
+        return 
+    }
+
+    increment := float32(0.0)
+    if len(p.Nodes) > 1 {
+        increment = p.Nodes[len(p.Nodes) - 1].GetCoord().DistanceToInMeters(p.Nodes[len(p.Nodes) - 2].GetCoord())
+    }
+    p.Nodes = p.Nodes[len(p.Nodes) - 1:]
+    p.Cost -= increment
+}
+
 // useful so children can modify their parent's path, without chaningin common underlying array
 func (p * GraphPath) Copy() GraphPath {                                 
     b := GraphPath{Nodes: make([]*GraphNode, len(p.Nodes)), Cost: 0}   

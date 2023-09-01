@@ -52,6 +52,26 @@ func (i Instance) GetSpliceBox () *foc.FiberSpliceBox {
     return box
 }
 
+// all that nodes the need to be connected to the OLT
+// in order for it to have connections with all sub-graphs in the CSV_Graph
+// func (i Instance) OltNecessaryColetions(csvg gm.CSV_Graph) []uint32 {
+//     connections := make([]uint32 ,0)
+//     invalid_nodes := make([]uint32, len(csvg.Nodes)/2)
+//
+//     validate_node := func (node gm.GraphNode, reference util.Coord, dist float32) bool {
+//         if node.GetCoord().DistanceToInMeters(reference) < dist && !util.In(node.ID, invalid_nodes){
+//             return true
+//         }
+//         return false
+//     }
+//     
+//     short, _ := csvg.ClosestNode(i.OLT)
+//
+//     
+//     
+//     
+// }
+
 func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.File, error){
     nodes_content := ""
     edges_content := ""
