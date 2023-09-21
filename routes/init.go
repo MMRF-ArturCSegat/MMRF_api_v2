@@ -21,7 +21,7 @@ func SetupRouter() *gin.Engine{
     r.Use(func(c *gin.Context) {
 
         switch host := c.GetHeader("Origin"); host {
-        case "http://localhost:3000", "http://oca.ctism.ufsm.br/routelib",  "https://oca.ctism.ufsm.br/routelib":
+        case "http://localhost:3000", "http://oca.ctism.ufsm.br",  "https://oca.ctism.ufsm.br":
                 c.Writer.Header().Set("Access-Control-Allow-Origin", host)
         }
 
