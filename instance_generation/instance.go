@@ -1,16 +1,16 @@
 package instance_generation
 
 import (
-    gm"github.com/UFSM-Routelib/routelib_api/graph_model"
-    "github.com/UFSM-Routelib/routelib_api/util"
+	"errors"
+	"fmt"
+	"os"
 	foc "github.com/UFSM-Routelib/routelib_api/fiber_optic_components"
-    "os"
-    "fmt"
-    "errors"
+	gm "github.com/UFSM-Routelib/routelib_api/graph_model"
+	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
-// in theory, Clients should be aligned to Paths 
-// so the 0th client is the root that generated the 0th path 
+// in theory, Clients should be aligned to Paths
+// so the 0th client is the root that generated the 0th path
 type Instance struct {
     Paths               [][]gm.GraphPath     `json:"paths"`
     Clients             []util.Coord         `json:"clients"`
@@ -54,24 +54,33 @@ func (i Instance) GetSpliceBox () *foc.FiberSpliceBox {
 
 // all that nodes the need to be connected to the OLT
 // in order for it to have connections with all sub-graphs in the CSV_Graph
-func (i Instance) OltNecessaryColetions(csvg *gm.CSV_Graph) []uint32 {
+func (i Instance) OltNecessaryConnections(csvg *gm.CSV_Graph) []uint32 {
     connections := make([]uint32 ,0)
-    invalid_nodes := make([]*gm.GraphNode, len(csvg.Nodes)/2)
+    invalid_nodes := make([]*gm.GraphNode, 0)
     validate_node := func (node *gm.GraphNode, reference util.Coord, dist float32) bool {
-        if node.GetCoord().DistanceToInMeters(reference) < dist && !util.In(node, invalid_nodes) && len(node.NeighboursID) == 0 {
+        if node.GetCoord().DistanceToInMeters(reference) < dist || len(node.NeighboursID) == 0 {
+            for _, n := range invalid_nodes {
+                if n.ID == node.ID {
+                    return false
+                }
+            }
             return true
         }
         return false
     }
 
+    short, _ := csvg.ClosestNode(i.OLT)
+    connections = append(connections, short.ID)
+    invalid_nodes = csvg.AllVisitableNodesFrom(short, invalid_nodes)
+
     for {
         short, _, err := csvg.ClosestNodeFunc(i.OLT, validate_node)
         if err != nil {
-            // err will be not nill when the file "validate_node" is strict enough that no nodes in csvg pass it
+            // err will be not nill once there are no sub-networks left to visit
             break
         }
         connections = append(connections, short.ID)
-        invalid_nodes = append(invalid_nodes, csvg.AllVisitableNodesFrom(short, make([]*gm.GraphNode, 0))...)
+        invalid_nodes = csvg.AllVisitableNodesFrom(short, invalid_nodes)
     }
         
     return connections
@@ -88,7 +97,6 @@ func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.Fil
         nodes_content += node.String() + "\n"
         nodes_count++
         for _, neighbour_id := range node.NeighboursID{
-            node, _ := csvg.FindNode(neighbour_id)
             edges_content += fmt.Sprintf("%v\t%v\n", node.ID, neighbour_id)
             edges_count++
         }
@@ -123,7 +131,7 @@ func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.Fil
     file_content += fmt.Sprintf("OLT \t%v\t%v\n", i.OLT.Lat, i.OLT.Lng)
     file_content += nodes_content
     file_content += fmt.Sprintf("Edges %v\n", edges_count)
-    for _, e := range i.OltNecessaryColetions(csvg) {
+    for _, e := range i.OltNecessaryConnections(csvg) {
         file_content += fmt.Sprintf("OLT\t%v\n", e)
     }
     file_content += edges_content
