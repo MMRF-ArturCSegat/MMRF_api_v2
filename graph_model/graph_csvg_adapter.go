@@ -30,7 +30,8 @@ func (csvg * CSV_Graph) Csvg_to_slice_of_coord_paths() [][]util.Coord{
     paths := make([][]util.Coord, 0, len(all_nodes))
     for _, node := range all_nodes{
         for _, neigh_id := range node.NeighboursID{
-            neigh, _ := csvg.FindNode(neigh_id)
+            neigh, err := csvg.FindNode(neigh_id)
+            if err != nil {continue}
             paths = append(paths, []util.Coord{node.GetCoord(), neigh.GetCoord()})
         }
     }

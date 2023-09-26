@@ -2,11 +2,13 @@ package graph_model
 
 import (
 	"encoding/csv"
+	"fmt"
 	"mime/multipart"
 	"strconv"
 	"strings"
-    "github.com/icholy/utm"
+
 	"github.com/UFSM-Routelib/routelib_api/util"
+	"github.com/icholy/utm"
 )
 
 
@@ -80,6 +82,12 @@ func New_csvg(csv_file multipart.File, coord_limiter util.Square) (*CSV_Graph, e
 
         csv_graph.AddEdge(&node1, &node2)
     }
+    
+    print("\nbefore crash\n")
+    clean_bad_nodes(&csv_graph)
+    print("\nafter crash\n")
+    csv_graph.Print()
+    print("\nafter crash\n")
     return &csv_graph, nil 
 }
 
@@ -88,4 +96,17 @@ func fix_float(bad_float_string string) float64{
     good_float_string := strings.Replace(bad_float_string, ",", ".", 1)
     good_float, _ := strconv.ParseFloat(good_float_string, 64)
     return good_float
+}
+
+func clean_bad_nodes(csvg *CSV_Graph) {
+    fmt.Printf("\ntotal was: %v\n", len(csvg.AllNodes()))
+    deleted := 0
+    for _, node := range csvg.AllNodes() {
+        if len(node.NeighboursID) == 0 {
+            delete(csvg.Nodes, node.ID)
+            fmt.Printf("\ndeleted: %v\n", node.ID)
+            deleted += 1
+        }
+    }
+    fmt.Printf("\ndeleted was: %v\n", deleted)
 }

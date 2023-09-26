@@ -16,7 +16,6 @@ func generate_txt(c * gin.Context){
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error(),})
 		return
 	}
-    fmt.Println(body)
 
     cookie_string, cookie_err := c.Cookie("session_id")
     if cookie_err != nil{
