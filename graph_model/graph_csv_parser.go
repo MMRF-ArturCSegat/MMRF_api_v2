@@ -59,8 +59,13 @@ func New_csvg(csv_file multipart.File, coord_limiter util.Square) (*CSV_Graph, e
             continue
         }
 
-        n1_lat, n1_lng := zone.ToLatLon(n1_x, n1_y)
-        n2_lat, n2_lng := zone.ToLatLon(n2_x, n2_y)
+        n1_lat, n1_lng := n1_x, n1_y
+        n2_lat, n2_lng := n2_x, n2_y
+
+        if n1_lat > 999 || n1_lng > 999 || n2_lat > 999 || n2_lng >999 {
+            n1_lat, n1_lng = zone.ToLatLon(n1_x, n1_y)
+            n2_lat, n2_lng = zone.ToLatLon(n2_x, n2_y)
+        }
 
         node1 := GraphNode{ID: uint32(n1_id), Lat: n1_lat, Lng: n1_lng}
         node2 := GraphNode{ID: uint32(n2_id), Lat: n2_lat, Lng: n2_lng}
