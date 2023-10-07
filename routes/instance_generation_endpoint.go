@@ -37,6 +37,6 @@ func generate_txt(c * gin.Context){
     c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", "sub_graph.txt"))
     c.Header("Content-Type", "text/plain")
     c.Header("Content-Description", "File Transfer")
-    c.File("/home/arturcs/Documents/Routelib/routelib_api/sub_graph.txt")
-    os.Remove("/home/arturcs/Documents/Routelib/routelib_api/sub_graph.txt")
+    c.File("./sub_graph.txt")
+    os.Remove("./sub_graph.txt")
 }
