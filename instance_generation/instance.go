@@ -14,7 +14,6 @@ import (
 type Instance struct {
     Paths               [][]gm.GraphPath     `json:"paths"`
     Clients             []util.Coord         `json:"clients"`
-    OLT                 util.Coord           `json:"olt"`
     Cable_id            uint32               `json:"Cable_id"`
     Splicebox_id        uint32               `json:"Splicebox_id"`
     Uspliters_id        []uint32             `json:"Uspliters_id"`
@@ -52,39 +51,6 @@ func (i Instance) GetSpliceBox () *foc.FiberSpliceBox {
     return box
 }
 
-// all that nodes the need to be connected to the OLT
-// in order for it to have connections with all sub-graphs in the CSV_Graph
-func (i Instance) OltNecessaryConnections(csvg *gm.CSV_Graph) []uint32 {
-    connections := make([]uint32 ,0)
-    invalid_nodes := make([]*gm.GraphNode, 0)
-    validate_node := func (node *gm.GraphNode, reference util.Coord, dist float32) bool {
-        if node.GetCoord().DistanceToInMeters(reference) < dist || len(node.NeighboursID) == 0 {
-            for _, n := range invalid_nodes {
-                if n.ID == node.ID {
-                    return false
-                }
-            }
-            return true
-        }
-        return false
-    }
-
-    short, _ := csvg.ClosestNode(i.OLT)
-    connections = append(connections, short.ID)
-    invalid_nodes = csvg.AllVisitableNodesFrom(short, invalid_nodes)
-
-    for {
-        short, _, err := csvg.ClosestNodeFunc(i.OLT, validate_node)
-        if err != nil {
-            // err will be not nill once there are no sub-networks left to visit
-            break
-        }
-        connections = append(connections, short.ID)
-        invalid_nodes = csvg.AllVisitableNodesFrom(short, invalid_nodes)
-    }
-        
-    return connections
-}
 
 func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.File, error){
     nodes_content := ""
@@ -128,12 +94,11 @@ func (i Instance) GenerateSubGraphOptimizationFile(csvg * gm.CSV_Graph) (*os.Fil
 
     file_content := fmt.Sprintf("Clients %v\n", len(i.Clients))
     file_content += fmt.Sprintf("Nodes %v\n", nodes_count + 1) // + 1 necesseary for OLT
-    file_content += fmt.Sprintf("OLT \t%v\t%v\n", i.OLT.Lat, i.OLT.Lng)
+    file_content += fmt.Sprintf("OLT \t%v\t%v\n", csvg.Olt.Lat, csvg.Olt.Lng)
     file_content += nodes_content
     file_content += fmt.Sprintf("Edges %v\n", edges_count)
-    for _, e := range i.OltNecessaryConnections(csvg) {
-        file_content += fmt.Sprintf("OLT\t%v\n", e)
-    }
+    olt_entry, _ := csvg.ClosestNode(csvg.Olt)
+    file_content += fmt.Sprintf("OLT\t%v\n", olt_entry.ID)
     file_content += edges_content
 
     // adding all fiber components

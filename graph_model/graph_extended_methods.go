@@ -3,8 +3,8 @@ package graph_model
 import (
 	"errors"
 	"math"
+	"slices"
 	"sync"
-
 	"github.com/UFSM-Routelib/routelib_api/util"
 )
 
@@ -141,6 +141,21 @@ func (csvg * CSV_Graph) ClosestNodeFunc(co util.Coord, comp func(node *GraphNode
     return best_result.node, best_result.dist, nil  // unmounting of best result for no type conflicts
 }
 
+func (csvg * CSV_Graph) order_neighbours_by_prox_to(ref util.Coord, neigh_id_slice []uint32) []*GraphNode{
+    ns := make([]*GraphNode, 0, len(neigh_id_slice))
+    for _, id := range neigh_id_slice {
+        if n, err := csvg.FindNode(id); err == nil{
+            ns = append(ns, n)
+        }
+    }
+        
+    slices.SortFunc(ns, func(a, b *GraphNode)int{
+        return int(a.GetCoord().DistanceToInMeters(ref) - b.GetCoord().DistanceToInMeters(ref))
+    })
+    
+    return ns
+}
+
 func (csvg * CSV_Graph)walk(start, end *GraphNode, path *GraphPath, seen *map[uint32]bool) bool{
     path.Append(start)
 
@@ -154,9 +169,7 @@ func (csvg * CSV_Graph)walk(start, end *GraphNode, path *GraphPath, seen *map[ui
     }
     (*seen)[start.ID] = true
 
-    for _, id := range start.NeighboursID {
-        node, err := csvg.FindNode(id)
-        if err != nil {continue}
+    for _, node := range csvg.order_neighbours_by_prox_to(end.GetCoord(), start.NeighboursID) {
         c := path.Copy()
         if csvg.walk(node, end, &c, seen) {
             *path = c
@@ -168,16 +181,16 @@ func (csvg * CSV_Graph)walk(start, end *GraphNode, path *GraphPath, seen *map[ui
     return false
 }
 
-func (csvg * CSV_Graph) DepthFirstSearch(start, end *GraphNode) *GraphPath {
+func (csvg * CSV_Graph) DepthFirstSearch(start, end *GraphNode) GraphPath {
     path := GraphPath{}
     seen := make(map[uint32]bool, len(csvg.Nodes)/2)
     
     csvg.walk(start, end, &path, &seen)
     
     if len(path.Nodes) == 1 && start.ID != end.ID {
-        return nil 
+        return GraphPath{}
     }
-    return &path 
+    return path 
 }
 
 func (csvg * CSV_Graph) AllVisitableNodesFrom(start *GraphNode, fill []*GraphNode) []*GraphNode {

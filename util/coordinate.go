@@ -56,3 +56,19 @@ func DefaultMaxSquare() Square {
     }
 }
 
+func (sq Square)Expand1km() Square {
+
+	// Expand the square
+	expandedSquare := Square{
+		Top: Coord{
+			Lat: sq.Top.Lat + (1000.0 / EarthRadius) * (180.0 / math.Pi),
+			Lng: sq.Top.Lng - (1000.0 / (EarthRadius * math.Cos(sq.Top.Lat*math.Pi/180.0))),
+		},
+		Bot: Coord{
+			Lat: sq.Bot.Lat - (1000.0 / EarthRadius) * (180.0 / math.Pi),
+			Lng: sq.Bot.Lng + (1000.0 / (EarthRadius * math.Cos(sq.Bot.Lat*math.Pi/180.0))),
+		},
+	}
+
+	return expandedSquare
+}

@@ -8,7 +8,9 @@ import (
 
 // represents a unweighted undirected graph read from a csv
 type CSV_Graph struct{
-    Nodes map[uint32]*GraphNode
+    Nodes       map[uint32]*GraphNode
+    Limiter     util.Square
+    Olt         util.Coord
 }
 
 

@@ -18,9 +18,19 @@ func parse_csv_to_obj(c * gin.Context){
     var coord_limiter util.Square
     err := json.Unmarshal([]byte(limiter_string), &coord_limiter)
     if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"bad coord limiter": err.Error()})
-            return
+        c.JSON(http.StatusBadRequest, gin.H{"bad coord limiter": err.Error()})
+        return
     }
+    
+    olt_string := c.PostForm("OLT")
+    fmt.Printf("olt: %v\n", olt_string)
+    var olt util.Coord
+    err = json.Unmarshal([]byte(olt_string), &olt)
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{"bad olt cord: ": err.Error()})
+        return
+    }
+
 
     file_ptr, file_err := c.FormFile("rede")
     if file_err != nil {
@@ -36,7 +46,7 @@ func parse_csv_to_obj(c * gin.Context){
         return
     }
     
-    csvg, err := graph_model.New_csvg(file, coord_limiter)
+    csvg, err := graph_model.New_csvg(file, olt, coord_limiter)
     file.Close()
     if err != nil{
         println("bad request")
