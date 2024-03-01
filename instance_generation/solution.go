@@ -16,17 +16,17 @@ type solutionOrVirtNet interface {
 } 
 
 type Solution struct {
-    Path                [][2]util.Coord
-    BspliterMap         map[uint32]foc.FiberBalancedSpliter
-    UspliterMap         map[uint32]foc.FiberUnbalancedSpliter
-    CableMap            map[uint32]foc.FiberCable
-    SpliceboxNodesId    []uint32
+    Path                     [][2]util.Coord
+    NodeIdToBspliter         map[uint32]foc.FiberBalancedSpliter
+    NodeIdToUspliter         map[uint32]foc.FiberUnbalancedSpliter
+    NodeIdToCable            map[uint32]foc.FiberCable
+    SpliceboxNodesId         []uint32
 }
 func (s * Solution) addPath(c [2]util.Coord){s.Path = append(s.Path, c)}
 
 type VirtualNetwork struct {
     Path                [][2]util.Coord
-    BspliterMap         map[uint32]foc.FiberBalancedSpliter
+    NodeIdToBspliter         map[uint32]foc.FiberBalancedSpliter
 }
 func (s * VirtualNetwork) addPath(c [2]util.Coord){s.Path = append(s.Path, c)}
 
@@ -88,14 +88,14 @@ func ParseSolutionFile(inst Instance, csvg *gm.CSV_Graph, sol_file multipart.Fil
     
     solution := Solution{
         Path: make([][2]util.Coord, 0, len(y_buffer)),
-        BspliterMap: make(map[uint32]foc.FiberBalancedSpliter, len(b_buffer)),
-        UspliterMap: make(map[uint32]foc.FiberUnbalancedSpliter, len(a_buffer)),
-        CableMap: make(map[uint32]foc.FiberCable),
+        NodeIdToBspliter: make(map[uint32]foc.FiberBalancedSpliter, len(b_buffer)),
+        NodeIdToUspliter: make(map[uint32]foc.FiberUnbalancedSpliter, len(a_buffer)),
+        NodeIdToCable: make(map[uint32]foc.FiberCable),
         SpliceboxNodesId: make([]uint32, 0, len(u_buffer)),
     }
     virtual_net := VirtualNetwork {
         Path: make([][2]util.Coord, 0, len(x2_buffer)),
-        BspliterMap: make(map[uint32]foc.FiberBalancedSpliter, len(b2_buffer)),
+        NodeIdToBspliter: make(map[uint32]foc.FiberBalancedSpliter, len(b2_buffer)),
     }
 
     all_bspliters := inst.GetBspliters()
@@ -126,7 +126,7 @@ func ParseSolutionFile(inst Instance, csvg *gm.CSV_Graph, sol_file multipart.Fil
     
         for _, spl := range all_bspliters {
             if spl.Id == uint32(spliterID) {
-                solution.BspliterMap[uint32(nodeID)] = spl
+                solution.NodeIdToBspliter[uint32(nodeID)] = spl
                 break
             }
         }
@@ -147,7 +147,7 @@ func ParseSolutionFile(inst Instance, csvg *gm.CSV_Graph, sol_file multipart.Fil
     
         for _, spl := range all_bspliters {
             if spl.Id == uint32(spliterID) {
-                virtual_net.BspliterMap[uint32(nodeID)] = spl
+                virtual_net.NodeIdToBspliter[uint32(nodeID)] = spl
                 break
             }
         }
@@ -172,7 +172,7 @@ func ParseSolutionFile(inst Instance, csvg *gm.CSV_Graph, sol_file multipart.Fil
     
         for _, spl := range all_uspliters {
             if spl.Id == uint32(spliterID) {
-                solution.UspliterMap[uint32(nodeID)] = spl
+                solution.NodeIdToUspliter[uint32(nodeID)] = spl
                 break
             }
         }
